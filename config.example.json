@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "wifi": { "ssid": "", "password": "" },
+  "ai": { "provider": "openrouter", "apiKey": "", "textModel": "openrouter/free", "voiceModel": "", "ttsModel": "" },
+  "hardware": { "microphoneEnabled": false, "speakerEnabled": false, "keyboardEnabled": false },
+  "audio": { "volume": 50, "recordingLimitSeconds": 5 },
+  "language": "pt-BR"
+}
