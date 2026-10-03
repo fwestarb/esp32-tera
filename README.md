@@ -6,6 +6,8 @@ Chat de IA em desenvolvimento para a **TTGO T-Display original**. Entrada por vo
 
 A primeira etapa contém firmware base para display/botões, paleta Tera, árvore sem folhas, leitura de configurações NVS e planejamento. **Ainda não há chat, captura de áudio, reprodução, instalador ou driver de teclado funcional.** Não foi gravado ou validado em hardware.
 
+Compilação de 03/10/2026: `pio run` concluído com sucesso. RAM estática: 21.860 bytes (6,7%); firmware: 298.045 bytes (22,7% da partição de aplicação). Esses números não medem o uso futuro de Wi-Fi/TLS/áudio. A compilação emite avisos das dependências sobre touch ausente e UART; não houve erro de compilação.
+
 ## Compilar a base
 
 Instale PlatformIO e execute na raiz:
