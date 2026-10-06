@@ -26,3 +26,11 @@ Abra `configurar.cmd`, configure Wi-Fi/chave e envie: “Explique em uma frase o
 
 Raízes obtidas de https://curl.se/ca/cacert.pem em 06/10/2026 (121 certificados). Bundle gerado com o utilitário oficial Espressif IDF v4.4.6: https://github.com/espressif/esp-idf/blob/v4.4.6/components/mbedtls/esp_crt_bundle/gen_crt_bundle.py (Apache 2.0, aviso preservado no arquivo). O firmware verifica os certificados e sincroniza o relógio antes de usar HTTPS. Atualizações futuras devem atualizar o bundle quando necessário.
 
+
+## Correção de Wi-Fi — firmware 0.2.1
+
+A placa confirmou configuração persistida, mas retornou motivo ESP32 201 (NO_AP_FOUND: rede não encontrada). Isso não identifica senha incorreta; verificar nome exato, sinal e disponibilidade em 2,4 GHz. Não depende de microfone, teclado ou alto-falante.
+
+Correções: estado detalhado após 20 segundos, mensagem de espera durante conexão, motivo de desconexão, botão de diagnóstico de rede e envio à IA bloqueado na interface enquanto o Wi-Fi não conecta. A busca desconecta temporariamente a estação e retoma a conexão sem apagar a configuração. Interface iniciou sem erro no teste local. Evidência em DIAGNOSTICO-WIFI.json.
+
+Teste adicional na versão final: busca 2,4 GHz executada com sucesso; a rede configurada não apareceu. Dez testes de protocolo passaram novamente com a configuração do usuário preservada (TESTES-USB-0.2.1.json). Falha de Wi-Fi confirmada; API ainda não foi consultada.

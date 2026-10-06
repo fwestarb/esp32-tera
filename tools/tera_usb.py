@@ -58,6 +58,7 @@ def connect():
 
 ttk.Button(row,text='Conectar',command=connect).pack(side='left',padx=10)
 ttk.Button(row,text='Verificar estado',command=lambda:send({'op':'status'})).pack(side='left')
+ttk.Button(row,text='Diagnosticar Wi-Fi',command=lambda:send({'op':'scan'})).pack(side='left',padx=6)
 fields={}
 for name,label,masked in [('ssid','Nome da rede Wi-Fi',False),('password','Senha do Wi-Fi',True),('key','Chave OpenRouter (sk-or-...)',True)]:
     ttk.Label(frame,text=label).pack(anchor='w')
@@ -80,7 +81,8 @@ def chat():
     if not text or len(text.encode('utf-8'))>1024:
         messagebox.showerror('Mensagem','Digite de 1 a 1024 bytes de texto.');return
     send({'op':'chat','text':text})
-ttk.Button(frame,text='Enviar à IA',command=chat).pack(anchor='w')
+chat_button=ttk.Button(frame,text='Enviar à IA',command=chat,state='disabled')
+chat_button.pack(anchor='w')
 output=tk.Text(frame,height=12,wrap='word',state='disabled');output.pack(fill='both',expand=True,pady=8)
 def append(text):
     output.configure(state='normal');output.insert('end',text+'\n\n');output.see('end');output.configure(state='disabled')
@@ -88,10 +90,15 @@ def poll():
     global busy
     while not events.empty():
         event=events.get();kind=event.get('event')
-        if kind=='status': append(f"Estado: Wi-Fi {'conectado' if event.get('wifi') else 'pendente'}; configuração {'salva' if event.get('configured') else 'pendente'}; firmware {event.get('version')}; RAM livre {event.get('freeHeap')} bytes.")
+        if kind=='status':
+            chat_button.configure(state='normal' if event.get('wifi') and event.get('configured') else 'disabled')
+            append(event.get('networkMessage',f"Wi-Fi {'conectado' if event.get('wifi') else 'pendente'}")+f" Firmware {event.get('version')}.")
         elif kind=='busy': busy=True;append('Consultando IA…')
-        elif kind in ('reply','error','configured'):
+        elif kind in ('reply','error','configured','network'):
             busy=False;append(('Tera: ' if kind=='reply' else '')+event.get('message',''))
+            if kind=='configured':
+                chat_button.configure(state='disabled')
+                root.after(5000,lambda:send({'op':'status'}))
     root.after(100,poll)
 def close():
     if connection: connection.close()

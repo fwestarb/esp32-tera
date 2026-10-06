@@ -1,0 +1,49 @@
+[
+  {
+    "event": "status",
+    "version": "0.2.1",
+    "networkMessage": "Conectando WiFi; aguarde ate 20 segundos.",
+    "disconnectReason": 0,
+    "configured": true,
+    "wifi": false,
+    "freeHeap": 245328,
+    "microphone": false,
+    "keyboard": false,
+    "speaker": false,
+    "model": "openrouter/free"
+  },
+  {
+    "event": "network",
+    "message": "Nao foi possivel procurar redes. Tente novamente."
+  },
+  {
+    "event": "status",
+    "version": "0.2.1",
+    "networkMessage": "Rede nao encontrada. Confira o nome exato, sinal e WiFi 2.4 GHz.",
+    "disconnectReason": 201,
+    "configured": true,
+    "wifi": false,
+    "freeHeap": 249420,
+    "microphone": false,
+    "keyboard": false,
+    "speaker": false,
+    "model": "openrouter/free"
+  },
+  {
+    "event": "status",
+    "version": "0.2.1",
+    "networkMessage": "Rede nao encontrada. Confira o nome exato, sinal e WiFi 2.4 GHz.",
+    "disconnectReason": 201,
+    "configured": true,
+    "wifi": false,
+    "freeHeap": 245308,
+    "microphone": false,
+    "keyboard": false,
+    "speaker": false,
+    "model": "openrouter/free"
+  },
+  {
+    "event": "network",
+    "message": "A rede configurada nao apareceu na busca 2.4 GHz. Confira o nome exato e aproxime a placa do roteador."
+  }
+]

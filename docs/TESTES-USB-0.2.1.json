@@ -1,0 +1,97 @@
+{
+  "date": "2026-10-06",
+  "target": "physical TTGO T-Display original",
+  "results": [
+    {
+      "test": "firmware boots and status responds",
+      "passed": true,
+      "status": {
+        "event": "status",
+        "version": "0.2.1",
+        "networkMessage": "Conectando WiFi; aguarde ate 20 segundos.",
+        "disconnectReason": 0,
+        "configured": true,
+        "wifi": false,
+        "freeHeap": 245328,
+        "microphone": false,
+        "keyboard": false,
+        "speaker": false,
+        "model": "openrouter/free"
+      }
+    },
+    {
+      "test": "invalid JSON",
+      "passed": true,
+      "response": {
+        "event": "error",
+        "message": "JSON invalido."
+      }
+    },
+    {
+      "test": "unknown command",
+      "passed": true,
+      "response": {
+        "event": "error",
+        "message": "Comando desconhecido."
+      }
+    },
+    {
+      "test": "missing configuration",
+      "passed": true,
+      "response": {
+        "event": "error",
+        "message": "Configuracao incompleta."
+      }
+    },
+    {
+      "test": "empty message",
+      "passed": true,
+      "response": {
+        "event": "error",
+        "message": "Envie de 1 a 1024 bytes de texto."
+      }
+    },
+    {
+      "test": "overlong message",
+      "passed": true,
+      "response": {
+        "event": "error",
+        "message": "Envie de 1 a 1024 bytes de texto."
+      }
+    },
+    {
+      "test": "oversize serial command",
+      "passed": true,
+      "response": {
+        "event": "error",
+        "message": "Comando excede 3072 bytes."
+      }
+    },
+    {
+      "test": "paid model rejected",
+      "passed": true,
+      "response": {
+        "event": "error",
+        "message": "Somente openrouter/free permitido nesta etapa."
+      }
+    },
+    {
+      "test": "header injection rejected",
+      "passed": true,
+      "response": {
+        "event": "error",
+        "message": "Formato da chave invalido."
+      }
+    },
+    {
+      "test": "invalid commands do not change configured state",
+      "passed": true
+    }
+  ],
+  "not_verified": [
+    "WiFi association with user credentials",
+    "real OpenRouter response",
+    "physical display appearance and buttons",
+    "microphone, keyboard, speaker"
+  ]
+}

@@ -51,3 +51,7 @@ The firmware was built, flashed with esptool hash verification and exercised on 
 
 Run `configurar.cmd`, connect to the board, enter your 2.4 GHz Wi-Fi credentials and personal OpenRouter API key, then save and send a question. The key is stored in unencrypted NVS, never embedded in source code. Do not publish flash backups.
 
+
+### Atualização 0.2.1: diagnóstico Wi-Fi
+
+A interface bloqueia o envio até a conexão e mostra o motivo de desconexão. Clique **Diagnosticar Wi-Fi** para verificar se a rede configurada aparece em 2,4 GHz; a busca interrompe a conexão temporariamente e depois tenta novamente. O firmware 0.2.1 compilou com 46.484 bytes de RAM estática e 1.015.465 bytes de flash. Os números e testes anteriores acima pertencem à versão 0.2.0.

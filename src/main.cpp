@@ -14,6 +14,19 @@ String input, answer, notice = "Configure pelo USB";
 unsigned page=0;
 bool dropping=false,lastButton=false;
 uint32_t lastPress=0;
+volatile uint8_t disconnectReason=0;
+uint32_t wifiStarted=0;
+bool wifiReported=false;
+String wifiDiagnosis(){
+ if(WiFi.status()==WL_CONNECTED)return "WiFi conectado.";
+ if(!settings.wifiSsid.length())return "WiFi nao configurado.";
+ if(millis()-wifiStarted<20000)return "Conectando WiFi; aguarde ate 20 segundos.";
+ switch(disconnectReason){
+ case 201:return "Rede nao encontrada. Confira o nome exato, sinal e WiFi 2.4 GHz.";
+ case 202:case 15:case 204:return "Falha de autenticacao/handshake. Confira senha e seguranca do roteador (WPA2).";
+ default:return "WiFi desconectado; motivo ESP32 "+String(disconnectReason)+". Confira rede, sinal e roteador.";
+ }
+}
 constexpr uint16_t bg=0x1082,green=0xA6EB,moss=0x6C88;
 String displayText(String s) {
  const char* from[]={"á","à","ã","â","é","ê","í","ó","ô","õ","ú","ç","Á","É","Ã","Ç"};
@@ -37,17 +50,19 @@ void emit(const char* type,const String& message=""){
  DynamicJsonDocument doc(6144);doc["event"]=type;if(message.length())doc["message"]=message;serializeJson(doc,Serial);Serial.println();
 }
 void status(){
- StaticJsonDocument<512> doc;doc["event"]="status";doc["version"]="0.2.0";
+ StaticJsonDocument<768> doc;doc["event"]="status";doc["version"]="0.2.1";
+ doc["networkMessage"]=wifiDiagnosis();doc["disconnectReason"]=disconnectReason;
  doc["configured"]=settings.wifiSsid.length()>0&&settings.apiKey.length()>0;doc["wifi"]=WiFi.status()==WL_CONNECTED;
  doc["freeHeap"]=ESP.getFreeHeap();doc["microphone"]=false;doc["keyboard"]=false;doc["speaker"]=false;doc["model"]="openrouter/free";
  serializeJson(doc,Serial);Serial.println();
 }
 void connectWifi(){
+ wifiStarted=millis();wifiReported=false;disconnectReason=0;
  WiFi.mode(WIFI_STA);if(settings.wifiSsid.length()){WiFi.begin(settings.wifiSsid.c_str(),settings.wifiPassword.c_str());configTime(0,0,"pool.ntp.org","time.google.com");notice="Conectando WiFi. Envie texto pelo USB.";}
 }
 void chat(const String& prompt){
  if(!settings.apiKey.length()){emit("error","Configure sua chave primeiro.");return;}
- if(WiFi.status()!=WL_CONNECTED){emit("error","WiFi desconectado. Confira a rede 2.4 GHz.");return;}
+ if(WiFi.status()!=WL_CONNECTED){emit("error",wifiDiagnosis());return;}
  if(time(nullptr)<1700000000){emit("error","Aguarde a sincronizacao do relogio para HTTPS.");return;}
  answer="";page=0;notice="Consultando IA...";render();emit("busy");
  WiFiClientSecure client;client.setCACertBundle(caBundle);client.setHandshakeTimeout(15);
@@ -70,6 +85,13 @@ void chat(const String& prompt){
 void command(const String& line){
  DynamicJsonDocument doc(4096);if(deserializeJson(doc,line)){emit("error","JSON invalido.");return;}
  String op=doc["op"]|"";if(op=="status"){status();return;}
+ if(op=="scan"){
+  WiFi.disconnect(false,false);delay(150);
+  int count=WiFi.scanNetworks();bool found=false;
+  for(int i=0;i<count;i++)if(WiFi.SSID(i)==settings.wifiSsid)found=true;
+  WiFi.scanDelete();
+  emit("network",count<0?"Nao foi possivel procurar redes. Tente novamente.":found?"A rede configurada foi encontrada em 2.4 GHz. Confira senha/seguranca se nao conectar.":"A rede configurada nao apareceu na busca 2.4 GHz. Confira o nome exato e aproxime a placa do roteador.");connectWifi();return;
+ }
  if(op=="configure"){
   if(!doc["ssid"].is<String>()||!doc["password"].is<String>()||!doc["key"].is<String>()){emit("error","Configuracao incompleta.");return;}
   String ssid=doc["ssid"],pass=doc["password"],key=doc["key"];
@@ -88,6 +110,7 @@ void command(const String& line){
 }
 void setup(){
  Serial.begin(115200);Serial.setDebugOutput(false);pinMode(Board::menuButton,INPUT_PULLUP);
+ WiFi.onEvent([](WiFiEvent_t event,WiFiEventInfo_t info){if(event==ARDUINO_EVENT_WIFI_STA_DISCONNECTED)disconnectReason=info.wifi_sta_disconnected.reason;});
  settings.load();screen.init();screen.setRotation(1);pinMode(Board::displayBacklight,OUTPUT);digitalWrite(Board::displayBacklight,HIGH);
  input.reserve(3072);connectWifi();render();status();
 }
@@ -99,4 +122,5 @@ void loop(){
  bool pressed=digitalRead(Board::menuButton)==LOW;
  if(pressed!=lastButton&&millis()-lastPress>40){lastPress=millis();lastButton=pressed;if(pressed){page++;render();}}
  static bool connected=false;bool now=WiFi.status()==WL_CONNECTED;if(now!=connected){connected=now;render();status();}delay(5);
+ if(!now&&settings.wifiSsid.length()&&!wifiReported&&millis()-wifiStarted>=20000){wifiReported=true;notice=wifiDiagnosis();render();status();}
 }
