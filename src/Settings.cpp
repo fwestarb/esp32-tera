@@ -12,6 +12,7 @@ void Settings::load() {
       wifiSsid = doc["ssid"].as<String>();
       wifiPassword = doc["password"].as<String>();
       apiKey = doc["key"].as<String>();
+      provider = doc["provider"] | "openrouter";
       textModel = "openrouter/free";
     }
     storage.end();
@@ -33,6 +34,7 @@ bool Settings::save() {
   doc["ssid"] = wifiSsid;
   doc["password"] = wifiPassword;
   doc["key"] = apiKey;
+  doc["provider"] = provider;
   String payload;
   serializeJson(doc, payload);
   Preferences storage;

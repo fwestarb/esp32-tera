@@ -15,7 +15,7 @@ def run(port='COM3'):
                 except (ValueError,UnicodeDecodeError):pass
             raise AssertionError('No firmware response')
         baseline=exchange('{"op":"status"}')
-        assert baseline['version'] in ('0.2.0','0.2.1','0.2.2')
+        assert baseline['version'] in ('0.2.0','0.2.1','0.2.2','0.3.0')
         results.append({'test':'firmware boots and status responds','passed':True,'status':baseline})
         cases=[('invalid JSON','{'),('unknown command','{"op":"unknown"}'),('missing configuration','{"op":"configure"}'),('empty message','{"op":"chat","text":" "}'),('overlong message',json.dumps({'op':'chat','text':'a'*1025})),('oversize serial command','a'*3073),('paid model rejected',json.dumps({'op':'configure','ssid':'test','password':'12345678','key':'sk-or-'+'a'*30,'model':'paid/model'})),('header injection rejected',json.dumps({'op':'configure','ssid':'test','password':'12345678','key':'sk-or-'+'a'*30+'\r\n'}))]
         for name,payload in cases:

@@ -5,6 +5,7 @@ struct Settings {
   String wifiSsid;
   String wifiPassword;
   String apiKey;
+  String provider = "openrouter";
   String textModel = "openrouter/free";
   bool microphoneEnabled = false;
   bool speakerEnabled = false;

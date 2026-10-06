@@ -16,7 +16,7 @@ busy = False
 frame = ttk.Frame(root, padding=16)
 frame.pack(fill='both', expand=True)
 ttk.Label(frame, text='ESP32 TERA', font=('Segoe UI', 18, 'bold')).pack(anchor='w')
-ttk.Label(frame, text='Wi-Fi 2,4 GHz • chave pessoal OpenRouter • áudio ainda indisponível').pack(anchor='w')
+ttk.Label(frame, text='Wi-Fi 2,4 GHz • Groq Free ou OpenRouter • áudio ainda indisponível').pack(anchor='w')
 row = ttk.Frame(frame); row.pack(fill='x', pady=10)
 port = ttk.Combobox(row, values=[p.device for p in list_ports.comports()], width=12)
 port.pack(side='left')
@@ -60,7 +60,10 @@ ttk.Button(row,text='Conectar',command=connect).pack(side='left',padx=10)
 ttk.Button(row,text='Verificar estado',command=lambda:send({'op':'status'})).pack(side='left')
 ttk.Button(row,text='Diagnosticar Wi-Fi',command=lambda:send({'op':'scan'})).pack(side='left',padx=6)
 fields={}
-for name,label,masked in [('ssid','Nome da rede Wi-Fi',False),('password','Senha do Wi-Fi',True),('key','Chave OpenRouter (sk-or-...)',True)]:
+ttk.Label(frame,text='Provedor de IA (use uma conta Groq no plano Free)').pack(anchor='w')
+provider=ttk.Combobox(frame,values=['groq','openrouter'],state='readonly')
+provider.set('groq');provider.pack(fill='x',pady=(0,7))
+for name,label,masked in [('ssid','Nome da rede Wi-Fi',False),('password','Senha do Wi-Fi',True),('key','Chave do provedor: Groq gsk_... / OpenRouter sk-or-...',True)]:
     ttk.Label(frame,text=label).pack(anchor='w')
     field=ttk.Entry(frame,show='•' if masked else '')
     field.pack(fill='x',pady=(0,7)); fields[name]=field
@@ -68,6 +71,7 @@ for name,label,masked in [('ssid','Nome da rede Wi-Fi',False),('password','Senha
 def configure():
     payload={name:entry.get() for name,entry in fields.items()}
     payload['op']='configure'
+    payload['provider']=provider.get()
     if send(payload):
         fields['password'].delete(0,'end'); fields['key'].delete(0,'end')
 

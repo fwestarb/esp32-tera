@@ -50,10 +50,10 @@ void emit(const char* type,const String& message=""){
  DynamicJsonDocument doc(6144);doc["event"]=type;if(message.length())doc["message"]=message;serializeJson(doc,Serial);Serial.println();
 }
 void status(){
- StaticJsonDocument<768> doc;doc["event"]="status";doc["version"]="0.2.2";
+ StaticJsonDocument<768> doc;doc["event"]="status";doc["version"]="0.3.0";
  doc["networkMessage"]=wifiDiagnosis();doc["disconnectReason"]=disconnectReason;
  doc["configured"]=settings.wifiSsid.length()>0&&settings.apiKey.length()>0;doc["wifi"]=WiFi.status()==WL_CONNECTED;
- doc["freeHeap"]=ESP.getFreeHeap();doc["microphone"]=false;doc["keyboard"]=false;doc["speaker"]=false;doc["model"]="google/gemma-4-26b-a4b-it:free";
+ doc["freeHeap"]=ESP.getFreeHeap();doc["microphone"]=false;doc["keyboard"]=false;doc["speaker"]=false;doc["provider"]=settings.provider;doc["model"]=settings.provider=="groq"?"openai/gpt-oss-20b":"google/gemma-4-26b-a4b-it:free";
  serializeJson(doc,Serial);Serial.println();
 }
 void connectWifi(){
@@ -67,14 +67,16 @@ void chat(const String& prompt){
  answer="";page=0;notice="Consultando IA...";render();emit("busy");
  WiFiClientSecure client;client.setCACert(reinterpret_cast<const char*>(caRoots));client.setHandshakeTimeout(15);
  HTTPClient http;http.useHTTP10(true);http.setReuse(false);http.setConnectTimeout(15000);http.setTimeout(45000);
- if(!http.begin(client,"https://openrouter.ai/api/v1/chat/completions")){emit("error","Falha ao iniciar HTTPS.");return;}
+ if(!http.begin(client,settings.provider=="groq"?"https://api.groq.com/openai/v1/chat/completions":"https://openrouter.ai/api/v1/chat/completions")){emit("error","Falha ao iniciar HTTPS.");return;}
  http.addHeader("Authorization","Bearer "+settings.apiKey);http.addHeader("Content-Type","application/json");
- DynamicJsonDocument request(3072);request["model"]="google/gemma-4-26b-a4b-it:free";request["max_tokens"]=320;
+ const bool groq=settings.provider=="groq";
+ DynamicJsonDocument request(3072);request["model"]=groq?"openai/gpt-oss-20b":"google/gemma-4-26b-a4b-it:free";request["max_tokens"]=groq?1024:320;
+ if(groq)request["reasoning_effort"]="low";
  JsonArray messages=request.createNestedArray("messages");
  JsonObject system=messages.createNestedObject();system["role"]="system";system["content"]="Voce e Tera. Responda em portugues de forma breve e clara. Nao invente fatos.";
  JsonObject user=messages.createNestedObject();user["role"]="user";user["content"]=prompt;
  String body;serializeJson(request,body);int code=http.POST(body);
- if(code!=200){char tlsError[160]={0};int tlsCode=client.lastError(tlsError,sizeof(tlsError));http.end();notice="Falha na IA. Veja USB.";render();emit("error",code==401?"Chave invalida (401).":code==429?"Limite gratuito atingido (429).":String("Falha HTTPS/API: ")+String(code)+"; TLS "+String(tlsCode)+" "+tlsError);return;}
+ if(code!=200){char tlsError[160]={0};int tlsCode=client.lastError(tlsError,sizeof(tlsError));http.end();notice="Falha na IA. Veja USB.";render();emit("error",code==401?"Chave invalida para o provedor selecionado (401).":code==429?"Provedor recusou por limite ou capacidade (429). Nao significa necessariamente que voce gastou sua cota.":String("Falha HTTPS/API: ")+String(code)+"; TLS "+String(tlsCode)+" "+tlsError);return;}
  StaticJsonDocument<512> filter;filter["choices"][0]["message"]["content"]=true;
  DynamicJsonDocument result(8192);
  auto error=deserializeJson(result,http.getStream(),DeserializationOption::Filter(filter));
@@ -85,6 +87,13 @@ void chat(const String& prompt){
 void command(const String& line){
  DynamicJsonDocument doc(4096);if(deserializeJson(doc,line)){emit("error","JSON invalido.");return;}
  String op=doc["op"]|"";if(op=="status"){status();return;}
+ if(op=="probe_groq"){
+  if(WiFi.status()!=WL_CONNECTED||time(nullptr)<1700000000){emit("error","Aguarde WiFi e relogio.");return;}
+  WiFiClientSecure client;client.setCACert(reinterpret_cast<const char*>(caRoots));client.setHandshakeTimeout(15);
+  HTTPClient http;http.useHTTP10(true);http.setConnectTimeout(15000);http.setTimeout(15000);
+  http.begin(client,"https://api.groq.com/openai/v1/models");int code=http.GET();http.end();
+  emit("network",String("Teste HTTPS Groq sem chave: HTTP ")+String(code)+(code==401?" (TLS OK; falta chave Groq).":""));return;
+ }
  if(op=="scan"){
   WiFi.disconnect(false,false);delay(150);
   int count=WiFi.scanNetworks();bool found=false;
@@ -95,10 +104,12 @@ void command(const String& line){
  if(op=="configure"){
   if(!doc["ssid"].is<String>()||!doc["password"].is<String>()||!doc["key"].is<String>()){emit("error","Configuracao incompleta.");return;}
   String ssid=doc["ssid"],pass=doc["password"],key=doc["key"];
+  String provider=doc["provider"]|"openrouter";
+  if(provider!="groq"&&provider!="openrouter"){emit("error","Provedor nao permitido.");return;}
   for(unsigned i=0;i<key.length();i++){char c=key[i];if(!isalnum(static_cast<unsigned char>(c))&&c!='-'&&c!='_'){emit("error","Formato da chave invalido.");return;}}
-  if(ssid.length()<1||ssid.length()>32||pass.length()>63||(pass.length()>0&&pass.length()<8)||key.length()<20||key.length()>256||!key.startsWith("sk-or-")){emit("error","Confira SSID, senha WiFi e chave OpenRouter.");return;}
+  if(ssid.length()<1||ssid.length()>32||pass.length()>63||(pass.length()>0&&pass.length()<8)||key.length()<20||key.length()>256||!key.startsWith(provider=="groq"?"gsk_":"sk-or-")){emit("error","Confira SSID, senha WiFi e chave do provedor selecionado.");return;}
   if(doc.containsKey("model")&&doc["model"]!="openrouter/free"){emit("error","Somente openrouter/free permitido nesta etapa.");return;}
-  Settings next;next.wifiSsid=ssid;next.wifiPassword=pass;next.apiKey=key;
+  Settings next;next.wifiSsid=ssid;next.wifiPassword=pass;next.apiKey=key;next.provider=provider;
   if(!next.save()){emit("error","Falha ao salvar na placa.");return;}
   settings=next;WiFi.disconnect();connectWifi();render();emit("configured","Configuracao salva; conectando WiFi.");return;
  }

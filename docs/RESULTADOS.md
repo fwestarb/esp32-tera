@@ -1,5 +1,11 @@
 # Resultado da etapa — 06/10/2026
 
+## Atualizacao Groq — 0.3.0
+
+Adicionados selecao de provedor e configuracao Groq. Modelo GPT-OSS 20B, a ser usado com conta Free. Configuracao OpenRouter anterior preservada. A mensagem 429 agora distingue limite/capacidade de consumo pessoal presumido.
+
+Firmware compilado/instalado: RAM estatica 46.500 bytes; flash 965.437 bytes. Dez testes USB passaram. HTTPS Groq passou na placa (HTTP 401 esperado sem chave). Geracao autenticada ainda aguarda chave Groq pessoal. Veja GROQ.md, TESTE-GROQ-TLS.json e TESTES-USB-0.3.0.json.
+
 ## Evidência obtida
 
 - Placa conectada em COM3: ESP32-D0WDQ6, revisão 1.0, compatível com TTGO T-Display original.

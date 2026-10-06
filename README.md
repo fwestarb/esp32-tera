@@ -2,7 +2,13 @@
 
 Chat de IA em desenvolvimento para a **TTGO T-Display original**. Visual minimalista em cinza e verde, com uma árvore que recebe folhas após uma resposta real.
 
-## Estado mais recente — 0.2.2
+## Estado atual — 0.3.0
+
+Adicionada opcao **Groq** na interface USB. Use uma chave de conta no plano Free e siga [o tutorial](docs/GROQ.md). Modelo: `openai/gpt-oss-20b`. O firmware nao verifica o plano de faturamento da conta. Wi-Fi e configuracao anteriores foram preservados.
+
+Build/upload e dez testes USB passaram. HTTPS Groq foi verificado na TTGO (HTTP 401 esperado sem chave). **Chat autenticado Groq ainda aguarda sua chave pessoal**.
+
+## Historico — 0.2.2
 
 Wi-Fi e HTTPS foram confirmados na TTGO com as credenciais do usuário. Corrigida falha de validação da cadeia TLS: agora são usadas raízes Google Trust Services em PEM, com validação ativa. Modelo atual fixado em `google/gemma-4-26b-a4b-it:free`; a consulta retornou **HTTP 429**, portanto uma resposta útil desse modelo ainda não foi validada. Não há fallback pago. Aguarde disponibilidade/limite do serviço antes de repetir. Áudio e teclado continuam pendentes. Consulte `docs/RESULTADOS.md` e `docs/TESTE-IA-REAL.json`.
 

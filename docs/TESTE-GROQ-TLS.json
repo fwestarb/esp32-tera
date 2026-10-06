@@ -1,0 +1,4 @@
+{
+  "event": "network",
+  "message": "Teste HTTPS Groq sem chave: HTTP 401 (TLS OK; falta chave Groq)."
+}
