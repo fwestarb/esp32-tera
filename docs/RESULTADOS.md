@@ -34,3 +34,13 @@ A placa confirmou configuração persistida, mas retornou motivo ESP32 201 (NO_A
 Correções: estado detalhado após 20 segundos, mensagem de espera durante conexão, motivo de desconexão, botão de diagnóstico de rede e envio à IA bloqueado na interface enquanto o Wi-Fi não conecta. A busca desconecta temporariamente a estação e retoma a conexão sem apagar a configuração. Interface iniciou sem erro no teste local. Evidência em DIAGNOSTICO-WIFI.json.
 
 Teste adicional na versão final: busca 2,4 GHz executada com sucesso; a rede configurada não apareceu. Dez testes de protocolo passaram novamente com a configuração do usuário preservada (TESTES-USB-0.2.1.json). Falha de Wi-Fi confirmada; API ainda não foi consultada.
+
+## Correção HTTPS — firmware 0.2.2
+
+Falha reproduzida na TTGO: HTTPClient -1, TLS -12288 (`X509 ... vrfy callback failed`). A verificação da cadeia pelo bundle anterior falhou para a cadeia atual do OpenRouter. Foram usadas as raízes GTS R1/R3/R4 presentes no conjunto Mozilla já obtido, em PEM através de setCACert. A validação de certificado/hostname continua ativa. Verificação independente no computador com somente essas raízes também passou.
+
+Resultado físico após correção: conexão HTTPS concluída e resposta real da API recebida. O roteador `openrouter/free` devolveu `User Safety: safe` para a pergunta de teste; esse resultado não valida um chat útil. Para evitar essa escolha automática, o firmware foi fixado em `google/gemma-4-26b-a4b-it:free`, que a API pública de modelos listou com preço de entrada/saída zero. A consulta a esse modelo retornou HTTP 429. Não há evidência suficiente para distinguir limite da conta de saturação do provedor. Não foram comprados créditos e não há fallback para modelos pagos.
+
+O problema TLS relatado foi corrigido. Conversa com o modelo atual permanece bloqueada por limite/capacidade do serviço gratuito; não foi validada uma resposta útil dele. Evidência da última chamada em TESTE-IA-REAL.json. Firmware instalado com hash verificado; RAM estática 46.484 bytes, flash 963.281 bytes (73,5%). As credenciais existentes foram preservadas.
+
+Quando o serviço liberar novas consultas, conectar a interface, aguardar Wi-Fi/horário e repetir a pergunta. Uma chave de outra conta com disponibilidade também pode ser configurada localmente, se o usuário já a tiver; nunca colar chaves em chat ou em Git.

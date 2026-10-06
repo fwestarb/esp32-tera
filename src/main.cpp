@@ -7,7 +7,7 @@
 #include <time.h>
 #include "Board.h"
 #include "Settings.h"
-extern const uint8_t caBundle[] asm("_binary_data_cert_x509_crt_bundle_bin_start");
+extern const uint8_t caRoots[] asm("_binary_data_cert_openrouter_roots_pem_start");
 TFT_eSPI screen;
 Settings settings;
 String input, answer, notice = "Configure pelo USB";
@@ -50,10 +50,10 @@ void emit(const char* type,const String& message=""){
  DynamicJsonDocument doc(6144);doc["event"]=type;if(message.length())doc["message"]=message;serializeJson(doc,Serial);Serial.println();
 }
 void status(){
- StaticJsonDocument<768> doc;doc["event"]="status";doc["version"]="0.2.1";
+ StaticJsonDocument<768> doc;doc["event"]="status";doc["version"]="0.2.2";
  doc["networkMessage"]=wifiDiagnosis();doc["disconnectReason"]=disconnectReason;
  doc["configured"]=settings.wifiSsid.length()>0&&settings.apiKey.length()>0;doc["wifi"]=WiFi.status()==WL_CONNECTED;
- doc["freeHeap"]=ESP.getFreeHeap();doc["microphone"]=false;doc["keyboard"]=false;doc["speaker"]=false;doc["model"]="openrouter/free";
+ doc["freeHeap"]=ESP.getFreeHeap();doc["microphone"]=false;doc["keyboard"]=false;doc["speaker"]=false;doc["model"]="google/gemma-4-26b-a4b-it:free";
  serializeJson(doc,Serial);Serial.println();
 }
 void connectWifi(){
@@ -65,16 +65,16 @@ void chat(const String& prompt){
  if(WiFi.status()!=WL_CONNECTED){emit("error",wifiDiagnosis());return;}
  if(time(nullptr)<1700000000){emit("error","Aguarde a sincronizacao do relogio para HTTPS.");return;}
  answer="";page=0;notice="Consultando IA...";render();emit("busy");
- WiFiClientSecure client;client.setCACertBundle(caBundle);client.setHandshakeTimeout(15);
+ WiFiClientSecure client;client.setCACert(reinterpret_cast<const char*>(caRoots));client.setHandshakeTimeout(15);
  HTTPClient http;http.useHTTP10(true);http.setReuse(false);http.setConnectTimeout(15000);http.setTimeout(45000);
  if(!http.begin(client,"https://openrouter.ai/api/v1/chat/completions")){emit("error","Falha ao iniciar HTTPS.");return;}
  http.addHeader("Authorization","Bearer "+settings.apiKey);http.addHeader("Content-Type","application/json");
- DynamicJsonDocument request(3072);request["model"]="openrouter/free";request["max_tokens"]=320;
+ DynamicJsonDocument request(3072);request["model"]="google/gemma-4-26b-a4b-it:free";request["max_tokens"]=320;
  JsonArray messages=request.createNestedArray("messages");
  JsonObject system=messages.createNestedObject();system["role"]="system";system["content"]="Voce e Tera. Responda em portugues de forma breve e clara. Nao invente fatos.";
  JsonObject user=messages.createNestedObject();user["role"]="user";user["content"]=prompt;
  String body;serializeJson(request,body);int code=http.POST(body);
- if(code!=200){http.end();notice="Falha na IA. Veja USB.";render();emit("error",code==401?"Chave invalida (401).":code==429?"Limite gratuito atingido (429).":String("Falha HTTPS/API: ")+String(code));return;}
+ if(code!=200){char tlsError[160]={0};int tlsCode=client.lastError(tlsError,sizeof(tlsError));http.end();notice="Falha na IA. Veja USB.";render();emit("error",code==401?"Chave invalida (401).":code==429?"Limite gratuito atingido (429).":String("Falha HTTPS/API: ")+String(code)+"; TLS "+String(tlsCode)+" "+tlsError);return;}
  StaticJsonDocument<512> filter;filter["choices"][0]["message"]["content"]=true;
  DynamicJsonDocument result(8192);
  auto error=deserializeJson(result,http.getStream(),DeserializationOption::Filter(filter));

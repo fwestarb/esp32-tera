@@ -1,0 +1,16 @@
+{
+  "firmware": "0.2.2",
+  "prompt": "Responda apenas: teste OK",
+  "events": [
+    {
+      "event": "busy"
+    },
+    {
+      "event": "error",
+      "message": "Limite gratuito atingido (429)."
+    }
+  ],
+  "model": "google/gemma-4-26b-a4b-it:free",
+  "date": "2026-10-06",
+  "outcome": "TLS connection completed; API returned HTTP 429; conversational output not verified"
+}

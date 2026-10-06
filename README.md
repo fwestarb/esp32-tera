@@ -2,7 +2,11 @@
 
 Chat de IA em desenvolvimento para a **TTGO T-Display original**. Visual minimalista em cinza e verde, com uma árvore que recebe folhas após uma resposta real.
 
-## Etapa atual — firmware 0.2.0
+## Estado mais recente — 0.2.2
+
+Wi-Fi e HTTPS foram confirmados na TTGO com as credenciais do usuário. Corrigida falha de validação da cadeia TLS: agora são usadas raízes Google Trust Services em PEM, com validação ativa. Modelo atual fixado em `google/gemma-4-26b-a4b-it:free`; a consulta retornou **HTTP 429**, portanto uma resposta útil desse modelo ainda não foi validada. Não há fallback pago. Aguarde disponibilidade/limite do serviço antes de repetir. Áudio e teclado continuam pendentes. Consulte `docs/RESULTADOS.md` e `docs/TESTE-IA-REAL.json`.
+
+## Base implementada — firmware 0.2.0 (histórico)
 
 Implementado: configuração de Wi-Fi/chave pessoal pela USB, gravação em NVS, conexão Wi-Fi, HTTPS com certificados verificados, requisição de texto para OpenRouter, respostas na tela com páginas pelo botão GPIO0 e interface local de configuração/chat.
 
