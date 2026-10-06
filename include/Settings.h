@@ -11,4 +11,5 @@ struct Settings {
   bool keyboardEnabled = false;
   uint8_t volume = 50;
   void load();
+  bool save();
 };

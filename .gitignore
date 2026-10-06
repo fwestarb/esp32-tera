@@ -9,3 +9,5 @@ config.local.json
 *.elf
 *.map
 *.log
+private-backups/
+!data/cert/x509_crt_bundle.bin

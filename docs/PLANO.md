@@ -34,3 +34,7 @@ NVS padrão não deve ser descrito como armazenamento criptografado. Proteção 
 ## Pendências externas
 
 Modelos dos componentes de áudio, confirmação elétrica do teclado, placa conectada para validação física e provedor/modelo de voz gratuito viável. O desenvolvimento da base e do chat textual pode avançar antes dessas respostas.
+
+## Atualização 06/10/2026
+
+A etapa de USB/configuração e o código de Wi-Fi/chat de texto estão implementados. Build, upload e validações USB foram testados na placa. Conexão Wi-Fi e resposta real da IA ainda aguardam credenciais e teste do usuário; veja RESULTADOS.md. A entrada atual é pelo computador via USB. Teclado e áudio permanecem pendentes; ainda não há chat autônomo completo.
