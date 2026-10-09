@@ -19,6 +19,7 @@ def save_wav(path, samples, rate):
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--port',default='COM3')
+    parser.add_argument('--silence',action='store_true',help='Capture background noise; instruct the user to stay silent.')
     parser.add_argument('--output',default='recordings/microfone-2026-10-09')
     args=parser.parse_args()
     prefix=Path(args.output);prefix.parent.mkdir(parents=True,exist_ok=True)
@@ -30,7 +31,8 @@ def main():
             if line.startswith(b'MIC_TEST') or line.count(b',')==4:ready=True;break
         if not ready:raise RuntimeError('Firmware de microfone nao respondeu.')
         conn.reset_input_buffer();conn.write(b'r')
-        print('Contagem de 3 segundos na TTGO; fale durante GRAVANDO (10 segundos).',flush=True)
+        instruction='fique em silencio' if args.silence else 'fale'
+        print(f'Contagem de 3 segundos na TTGO; {instruction} durante GRAVANDO (10 segundos).',flush=True)
         deadline=time.monotonic()+30
         while time.monotonic()<deadline:
             header=conn.readline()
@@ -61,6 +63,7 @@ def main():
     listening=prefix.parent/(prefix.name+'-escutar.wav')
     save_wav(listening,listen,rate)
     report={'samples':count,'elapsed_us':elapsed,'measured_sample_rate':rate,'late_samples_over_30us':late,'crc_verified':True,'adc_mean':mean,'adc_rms':rms,'adc_peak_to_peak':max(values)-min(values),'clipped_adc_samples':sum(v<=10 or v>=4085 for v in values),'listening_gain':gain,'original_wav':str(prefix.with_suffix('.wav').resolve()),'listening_wav':str(listening.resolve()),'note':'DC removed; listening copy digitally amplified. No denoising or speech recognition. Rate uses measured duration; jitter is not corrected.'}
+    report['capture_instruction']='silence' if args.silence else 'speech'
     prefix.with_suffix('.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
     print(json.dumps(report,indent=2),flush=True)
 
