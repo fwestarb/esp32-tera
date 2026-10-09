@@ -10,4 +10,5 @@ config.local.json
 *.map
 *.log
 private-backups/
+recordings/
 !data/cert/x509_crt_bundle.bin
