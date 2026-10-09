@@ -1,5 +1,9 @@
 # ESP32 Tera
 
+## Teste de microfone analogico
+
+Teste independente em GPIO32 com nivel na tela e CSV na USB: [instrucoes](docs/TESTE-MICROFONE.md). Compile/grave com `pio run -e mic_test -t upload --upload-port COM3`. Esse teste substitui temporariamente o chat sem apagar NVS. O ambiente padrao continua sendo o chat `ttgo_t_display`.
+
 Chat de IA em desenvolvimento para a **TTGO T-Display original**. Visual minimalista em cinza e verde, com uma árvore que recebe folhas após uma resposta real.
 
 ## Estado atual — 0.3.0
