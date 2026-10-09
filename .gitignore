@@ -11,4 +11,5 @@ config.local.json
 *.log
 private-backups/
 recordings/
+.venv-transcription/
 !data/cert/x509_crt_bundle.bin

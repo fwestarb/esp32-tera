@@ -34,6 +34,12 @@ pio run -e ttgo_t_display -t upload --upload-port COM3
 
 ## Gravar e ouvir
 
+### Transcricao local experimental
+
+Ferramenta `tools/transcribe_local.py` com dependencias em `tools/requirements-transcription.txt`, instalada em `.venv-transcription`. Os modelos sao baixados, mas o audio nao e enviado para um servico. Execute com o Python desse ambiente, passando o WAV e opcionalmente `--model small`.
+
+No teste 2, os modelos base e small concordaram no inicio: "Teste falando mais longe do microfone". As hipoteses para o final divergiram e nao devem ser consideradas uma transcricao confiavel. Esse teste ocorreu no computador; nao e reconhecimento de fala executado pela ESP32 nem integracao de voz com a API.
+
 Execute `python tools/record_microphone.py --port COM3 --output recordings/meu-teste`. O computador espera o firmware responder, envia o comando r e recebe 40.000 amostras ADC de 16 bits. A TTGO conta tres segundos e mostra GRAVANDO por cinco segundos; fale nesse intervalo. A transferencia acontece depois da captura, sem reduzir a velocidade de amostragem por causa da USB.
 
 O script confere comprimento e CRC32, salva o ADC original, um WAV com a componente DC removida e uma copia `-escutar.wav` com ganho digital explicitamente registrado. O WAV e mono, PCM de 16 bits; a taxa usa a duracao medida na placa. Amplificacao digital tambem aumenta o ruido. Nao ha filtro de ruido, reconhecimento de fala ou correcao de jitter. Os arquivos de voz ficam em recordings/, ignorada pelo Git.
