@@ -21,7 +21,7 @@ Feche a interface Tera e outros monitores antes de abrir COM3.
 1. Apos iniciar, fique em silencio durante a calibracao (cerca de 3 segundos).
 2. Fale perto do microfone e compare a barra, RMS e pico a pico com o silencio.
 3. Repita algumas vezes: os valores devem subir acompanhando a fala e baixar quando parar.
-4. Na versao com gravador, GPIO0 inicia uma gravacao de cinco segundos; nao segure esse botao durante reset. A calibracao de ruido acontece automaticamente ao iniciar o programa.
+4. Na versao atual, GPIO0 inicia uma gravacao de dez segundos; nao segure esse botao durante reset. A calibracao de ruido acontece automaticamente ao iniciar o programa.
 
 Media e a polarizacao DC (escala ADC de 0 a 4095); RMS mede variacao sem a componente DC; pico a pico e maximo menos minimo. Clipping conta amostras perto dos extremos. O teste mostra atividade eletrica, nao reconhece voz nem confirma qualidade de audio. Uma entrada solta tambem pode produzir variacao. O limiar e indicativo, nao uma medida em decibeis.
 
@@ -40,8 +40,10 @@ Ferramenta `tools/transcribe_local.py` com dependencias em `tools/requirements-t
 
 No teste 2, os modelos base e small concordaram no inicio: "Teste falando mais longe do microfone". As hipoteses para o final divergiram e nao devem ser consideradas uma transcricao confiavel. Esse teste ocorreu no computador; nao e reconhecimento de fala executado pela ESP32 nem integracao de voz com a API.
 
-Execute `python tools/record_microphone.py --port COM3 --output recordings/meu-teste`. O computador espera o firmware responder, envia o comando r e recebe 40.000 amostras ADC de 16 bits. A TTGO conta tres segundos e mostra GRAVANDO por cinco segundos; fale nesse intervalo. A transferencia acontece depois da captura, sem reduzir a velocidade de amostragem por causa da USB.
+Execute `python tools/record_microphone.py --port COM3 --output recordings/meu-teste`. O computador espera o firmware responder, envia o comando r e recebe 80.000 amostras ADC de 16 bits. A TTGO conta tres segundos e mostra GRAVANDO por dez segundos; fale nesse intervalo. A transferencia acontece depois da captura, sem reduzir a velocidade de amostragem por causa da USB. Dois blocos de 80 KB sao alocados dinamicamente para evitar exceder a memoria estatica da TTGO. Falha de alocacao e informada na tela e na USB.
 
 O script confere comprimento e CRC32, salva o ADC original, um WAV com a componente DC removida e uma copia `-escutar.wav` com ganho digital explicitamente registrado. O WAV e mono, PCM de 16 bits; a taxa usa a duracao medida na placa. Amplificacao digital tambem aumenta o ruido. Nao ha filtro de ruido, reconhecimento de fala ou correcao de jitter. Os arquivos de voz ficam em recordings/, ignorada pelo Git.
 
 Captura de 09/10/2026: 40.000 amostras em 4.999.964 microssegundos, WAV 8.000 Hz, CRC confirmado, nenhuma amostra no limite ADC. RMS 10,56 e pico a pico 178 unidades ADC. 178 amostras iniciaram mais de 30 microssegundos depois do horario previsto (0,445%). Copia para ouvir com ganho digital de aproximadamente 18,95 vezes. A inteligibilidade aguarda audição do usuario; a gravacao nao foi apresentada como fala reconhecida.
+
+Captura posterior de dez segundos: 80.000 amostras em 9.999.965 microssegundos, WAV 8.000 Hz, CRC confirmado e nenhuma saturacao ADC. RMS 6,79; pico a pico 126; 402 amostras iniciaram com atraso maior que 30 microssegundos (0,5025%). Whisper small e base produziram hipoteses divergentes: a transcricao deste trecho deve ser tratada como incerta. Gravacao e hipoteses completas ficam em recordings/, fora do Git.

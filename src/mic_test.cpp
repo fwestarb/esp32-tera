@@ -14,16 +14,16 @@ bool lastPressed = false;
 uint32_t lastButton = 0;
 unsigned calibrationWindows = 0;
 float calibrationSum = 0;
-constexpr unsigned audioSamples = 40000; // Five seconds at nominal 8 kHz.
-uint16_t audioBuffer[audioSamples];
+constexpr unsigned audioSamples = 80000; // Ten seconds at nominal 8 kHz; 160 KB.
+constexpr unsigned chunkSamples = 40000;
+uint16_t* audioChunks[2] = {nullptr,nullptr};
 
-uint32_t audioCrc(const uint8_t* bytes, size_t length) {
-  uint32_t crc = 0xffffffff;
+uint32_t audioCrc(const uint8_t* bytes, size_t length, uint32_t crc=0xffffffff) {
   while (length--) {
     crc ^= *bytes++;
     for (unsigned bit=0; bit<8; ++bit) crc = (crc >> 1) ^ (0xedb88320U & (0U - (crc & 1U)));
   }
-  return crc ^ 0xffffffff;
+  return crc;
 }
 
 void recordAudio() {
@@ -38,7 +38,7 @@ void recordAudio() {
   for (unsigned i=0; i<audioSamples; ++i) {
     while (static_cast<int32_t>(micros()-next)<0) {}
     if (static_cast<int32_t>(micros()-next)>30) ++late;
-    audioBuffer[i]=analogRead(micPin);
+    audioChunks[i/chunkSamples][i%chunkSamples]=analogRead(micPin);
     next+=samplePeriodUs;
     // Yield between chunks; record any timing gaps instead of hiding them.
     if ((i+1)%8000==0 && i+1<audioSamples) delay(1);
@@ -46,10 +46,12 @@ void recordAudio() {
   uint32_t elapsed=micros()-start;
   display.fillRect(0,30,240,105,0x1082);
   display.drawString("Enviando audio pela USB",5,48,2);
-  const uint8_t* bytes=reinterpret_cast<const uint8_t*>(audioBuffer);
-  uint32_t crc=audioCrc(bytes,sizeof(audioBuffer));
+  constexpr size_t chunkBytes=chunkSamples*sizeof(uint16_t);
+  uint32_t crc=audioCrc(reinterpret_cast<const uint8_t*>(audioChunks[0]),chunkBytes);
+  crc=audioCrc(reinterpret_cast<const uint8_t*>(audioChunks[1]),chunkBytes,crc)^0xffffffff;
   Serial.printf("AUDIO1 %u %u %u %u\n",audioSamples,elapsed,late,crc);
-  Serial.write(bytes,sizeof(audioBuffer));Serial.flush();Serial.println("\nAUDIO_END");
+  for(unsigned chunk=0;chunk<2;++chunk)Serial.write(reinterpret_cast<const uint8_t*>(audioChunks[chunk]),chunkBytes);
+  Serial.flush();Serial.println("\nAUDIO_END");
 }
 
 void setup() {
@@ -64,7 +66,13 @@ void setup() {
   display.fillScreen(0x1082);
   display.setTextColor(0xA6EB, 0x1082);
   display.drawString("TERA - TESTE MICROFONE", 5, 5, 2);
-  Serial.println("MIC_TEST GPIO32; GPIO0 ou comando r gravam 5 segundos.");
+  for(unsigned chunk=0;chunk<2;++chunk)audioChunks[chunk]=static_cast<uint16_t*>(malloc(chunkSamples*sizeof(uint16_t)));
+  if(!audioChunks[0]||!audioChunks[1]){
+    Serial.println("MIC_ERROR: memoria insuficiente para 10 segundos.");
+    display.drawString("Sem RAM para gravar",5,48,2);
+    while(true)delay(1000);
+  }
+  Serial.println("MIC_TEST GPIO32; GPIO0 ou comando r gravam 10 segundos.");
   Serial.println("media,pico_a_pico,rms,ruido_rms,clipping");
 }
 
@@ -110,7 +118,7 @@ void loop() {
   display.drawRect(5, 101, 230, 13, 0x6C88);
   int width = constrain(static_cast<int>(rms * 225 / max(50.0f, threshold * 3)), 0, 225);
   display.fillRect(7, 103, width, 9, 0xA6EB);
-  display.drawString("GPIO0: gravar 5s | GPIO32: ADC", 5, 121, 1);
+  display.drawString("GPIO0: gravar 10s | GPIO32: ADC", 5, 121, 1);
   Serial.printf("%.1f,%u,%.2f,%.2f,%u\n", mean, maximum - minimum, rms, referenceRms, clipped);
   // Electrical activity alone does not prove that the microphone captured speech.
   yield();

@@ -30,16 +30,16 @@ def main():
             if line.startswith(b'MIC_TEST') or line.count(b',')==4:ready=True;break
         if not ready:raise RuntimeError('Firmware de microfone nao respondeu.')
         conn.reset_input_buffer();conn.write(b'r')
-        print('Contagem de 3 segundos na TTGO; fale durante GRAVANDO (5 segundos).',flush=True)
-        deadline=time.monotonic()+20
+        print('Contagem de 3 segundos na TTGO; fale durante GRAVANDO (10 segundos).',flush=True)
+        deadline=time.monotonic()+30
         while time.monotonic()<deadline:
             header=conn.readline()
             if header.startswith(b'AUDIO1 '):break
         else:raise RuntimeError('Cabecalho de audio nao recebido.')
         _,count,elapsed,late,expected_crc=header.decode('ascii').split()
         count,elapsed,late,expected_crc=map(int,(count,elapsed,late,expected_crc))
-        if not 1<=count<=40000 or elapsed<=0:raise RuntimeError('Cabecalho invalido.')
-        raw=bytearray();deadline=time.monotonic()+25
+        if not 1<=count<=80000 or elapsed<=0:raise RuntimeError('Cabecalho invalido.')
+        raw=bytearray();deadline=time.monotonic()+40
         while len(raw)<count*2 and time.monotonic()<deadline:
             raw.extend(conn.read(count*2-len(raw)))
         if len(raw)!=count*2:raise RuntimeError('Transferencia incompleta.')
