@@ -24,7 +24,7 @@ result = subprocess.run([sys.executable, str(ROOT/'tools/tera_usb.py'), '--minim
 assert result.returncode == 0
 after = health()
 assert after['usb']
-(ROOT/'docs/TESTE-APP-WINDOWS-0.5.0.json').write_text(json.dumps({
+(ROOT/('docs/TESTE-APP-WINDOWS-'+initial.get('firmware','0.5.0')+'.json')).write_text(json.dumps({
     'date':'2026-10-10', 'passed':True,
     'scope':'real Tk companion automatic COM3 pairing and second launch restoring the same instance; startup shortcut installed',
     'initialHealth':initial, 'afterSecondLaunch':after,

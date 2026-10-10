@@ -16,6 +16,8 @@ import serial
 from serial.tools import list_ports
 
 ROOT=Path(__file__).resolve().parent
+PIPER_PYTHON=ROOT.parent/'.venv-tts/Scripts/python.exe'
+PIPER_MODEL=ROOT.parent/'models/piper/pt_BR-faber-medium.onnx'
 TARGETS={'calculator':'a calculadora','notepad':'o Bloco de notas','explorer':'o explorador de arquivos','browser':'o navegador','github':'o GitHub','youtube':'o YouTube'}
 URLS={'browser':'about:blank','github':'https://github.com/fwestarb','youtube':'https://www.youtube.com/'}
 
@@ -35,6 +37,7 @@ class SpeechWorker:
     def __init__(self,callback=lambda event:None):
         self.callback=callback;self.enabled=True;self.queue=queue.Queue(maxsize=3)
         self.lock=threading.Lock();self.process=None;self.closed=False;self.generation=0
+        self.voice='piper-faber' if PIPER_PYTHON.exists() and PIPER_MODEL.exists() else 'windows-daniel'
         self.thread=threading.Thread(target=self._run,daemon=True);self.thread.start()
     def say(self,text):
         if self.closed or not self.enabled or not isinstance(text,str) or not text.strip():return
@@ -58,9 +61,16 @@ class SpeechWorker:
             try:
                 with self.lock:
                     if self.closed or generation!=self.generation:continue
-                    self.process=subprocess.Popen(['powershell.exe','-NoProfile','-NonInteractive','-File',str(ROOT/'speech.ps1')],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding='utf-8',creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+                    selected=self.voice
+                    request={'text':text}
+                    if selected=='piper-faber':
+                        command=[str(PIPER_PYTHON),str(ROOT/'piper_speech.py')]
+                    else:
+                        command=['powershell.exe','-NoProfile','-NonInteractive','-File',str(ROOT/'speech.ps1')]
+                        request['voice']='Microsoft Daniel' if selected=='windows-daniel' else 'Microsoft Maria Desktop'
+                    self.process=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,encoding='utf-8',creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0),env={**os.environ,'PYTHONIOENCODING':'utf-8'})
                     process=self.process
-                out,err=process.communicate(json.dumps({'text':text},ensure_ascii=False),timeout=180)
+                out,err=process.communicate(json.dumps(request,ensure_ascii=False),timeout=180)
                 if process.returncode==0:
                     result=json.loads(out.strip());self.callback({'event':'speech',**result})
                 elif process.returncode not in (-15,1):self.callback({'event':'speech','ok':False,'error':'Fala interrompida.'})
@@ -80,12 +90,14 @@ class PCBridge:
         self.session=uuid.uuid4().hex;self.seen=deque(maxlen=128);self.writer=threading.Lock()
         self.fixture=None;self.buffer=bytearray();self.thread=None;self.last_hello=0
         self.current_port=None;self.auto=False
+        self.last_received=0;self.connected_at=0;self.last_error='';self.last_status={};self.boot_id=None
     def ports(self):return [p.device for p in list_ports.comports() if p.vid==0x10c4 and p.pid==0xea60]
     def connect(self,port):
         self.disconnect();self.session=uuid.uuid4().hex;self.seen.clear();self.buffer.clear()
         conn=serial.Serial(port=None,baudrate=115200,timeout=.15,write_timeout=20)
         conn.dtr=False;conn.rts=False;conn.port=port;conn.open()
         self.connection=conn;self.current_port=port;self.ready=False;self.busy=False;self.closed=False
+        self.connected_at=time.monotonic();self.last_received=0;self.last_error='';self.last_status={};self.boot_id=None;self.last_hello=0
         self.thread=threading.Thread(target=self._read,daemon=True);self.thread.start()
         self.send({'op':'status'},force=True)
         self.callback({'event':'usb','connected':True,'port':port})
@@ -98,14 +110,29 @@ class PCBridge:
     def _hello(self):
         self.last_hello=time.monotonic()
         self.send({'op':'bridge_hello','session':self.session,'actions':self.actions,'speech':self.speech.enabled})
+    def responsive(self):
+        limit=180 if self.busy else 15
+        return bool(self.ready and self.connection and self.connection.is_open and self.last_received and time.monotonic()-self.last_received<limit)
     def handle(self,event):
         if not isinstance(event,dict):return
+        self.last_received=time.monotonic()
         kind=event.get('event')
         if kind=='status':
-            if event.get('project')!='esp32-tera' or event.get('version')!='0.5.0':
-                self.callback({'event':'error','message':'Instale o firmware Tera 0.5.0 para usar o assistente do PC.'});return
-            if not self.ready or not event.get('pcConnected'):self.ready=False;self._hello()
-        elif kind=='bridge_ready':self.ready=True
+            self.last_status=event.copy()
+            if event.get('project')!='esp32-tera' or event.get('version') not in ('0.5.0','0.5.1'):
+                self.callback({'event':'error','message':'Instale o firmware Tera 0.5.x para usar o assistente do PC.'});return
+            boot=event.get('bootId')
+            if boot is not None:
+                if self.boot_id is not None and boot!=self.boot_id:
+                    self.session=uuid.uuid4().hex;self.seen.clear();self.ready=False
+                self.boot_id=boot
+                if event.get('bridgeSession')!=self.session:self.ready=False
+            # A stale device heartbeat during a blocking cloud request does not
+            # mean its session changed. Re-pair only on an explicit session error.
+            if not self.ready and time.monotonic()-self.last_hello>.8:self._hello()
+        elif kind=='bridge_ready':
+            if event.get('session',self.session)!=self.session:return
+            self.ready=True;self.boot_id=event.get('bootId',self.boot_id)
         elif kind in ('busy','recording','countdown'):
             self.busy=True
             if kind in ('recording','countdown'):self.speech.cancel()
@@ -113,7 +140,8 @@ class PCBridge:
             self.busy=False
             if kind=='error':
                 self.fixture=None
-                if event.get('message')=='Sessao do PC invalida.':self.ready=False
+                if event.get('message')=='Sessao do PC invalida.':
+                    self.ready=False;self.session=uuid.uuid4().hex;self.seen.clear();self._hello()
             if kind=='reply' and self.ready:self.speech.say(event.get('message',''))
         elif kind=='pc_action':
             target=event.get('target');action_id=event.get('id')
@@ -138,7 +166,7 @@ class PCBridge:
         if not self.send({'op':'voice_fixture','samples':len(payload),'crc':zlib.crc32(payload)},force=True):self.fixture=None;return False
         return True
     def _read(self):
-        conn=self.connection;heartbeat=time.monotonic()+3;status_due=time.monotonic()+10
+        conn=self.connection;heartbeat=time.monotonic()+3
         try:
             while not self.closed and conn.is_open and self.connection is conn:
                 chunk=conn.read(min(4096,conn.in_waiting or 1))
@@ -150,15 +178,20 @@ class PCBridge:
                 if len(self.buffer)>32768:self.buffer.clear()
                 now=time.monotonic()
                 if self.fixture is None and now>=heartbeat:
-                    if self.ready:self.send({'op':'bridge_ping','session':self.session,'speech':self.speech.enabled,'actions':self.actions})
-                    else:self.send({'op':'status'})
+                    if not self.busy:
+                        if self.ready:self.send({'op':'bridge_ping','session':self.session,'speech':self.speech.enabled,'actions':self.actions})
+                        self.send({'op':'status'})
                     heartbeat=now+3
-                if self.fixture is None and not self.busy and now>=status_due:self.send({'op':'status'});status_due=now+10
+                if self.fixture is None and now-(self.last_received or self.connected_at)>(180 if self.busy else 15):
+                    raise OSError('A placa parou de responder ao USB.')
         except (serial.SerialException,OSError):
             self.ready=False;self.busy=False;self.fixture=None
+            self.last_error='A placa nao responde ou o USB foi desconectado. Tentando reconectar.'
             self.speech.cancel()
             self.callback({'event':'usb','connected':False,'port':self.current_port})
+            self.callback({'event':'error','message':self.last_error})
         finally:
+            self.ready=False
             if conn.is_open:conn.close()
     def disconnect(self):
         self.closed=True;self.ready=False;self.fixture=None

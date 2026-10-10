@@ -4,6 +4,8 @@ import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import queue
 import socket
+import os
+from pathlib import Path
 import threading
 import tkinter as tk
 from tkinter import ttk
@@ -11,6 +13,8 @@ from urllib.request import Request, urlopen
 from pc_bridge import PCBridge
 
 IPC_PORT = 39135
+VOICES={'Faber · neural local (Piper)':'piper-faber','Daniel · Windows':'windows-daniel','Maria · Windows':'windows-maria'}
+PREFERENCES=Path(os.environ.get('LOCALAPPDATA',str(Path.home())))/'ESP32 Tera'/'preferences.json'
 
 def main():
     parser = argparse.ArgumentParser()
@@ -18,10 +22,14 @@ def main():
     args = parser.parse_args()
     events = queue.Queue()
     bridge = PCBridge(events.put)
+    try:
+        selected_voice=json.loads(PREFERENCES.read_text(encoding='utf-8')).get('voice')
+        if selected_voice in VOICES.values():bridge.speech.voice=selected_voice
+    except (OSError,ValueError):pass
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
             if self.path!='/health':self.send_error(404);return
-            body=json.dumps({'app':'esp32-tera','usb':bridge.ready,'port':bridge.current_port,'speech':bridge.speech.enabled,'actions':bridge.actions}).encode()
+            body=json.dumps({'app':'esp32-tera','usb':bridge.responsive(),'port':bridge.current_port,'speech':bridge.speech.enabled,'actions':bridge.actions,'voice':bridge.speech.voice,'firmware':bridge.last_status.get('version'),'error':bridge.last_error}).encode()
             self.send_response(200);self.send_header('Content-Type','application/json');self.send_header('Cache-Control','no-store');self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)
         def do_POST(self):
             if self.path != '/show' or self.headers.get('Origin') or self.headers.get('X-Tera-App') != 'show':
@@ -73,6 +81,18 @@ def main():
     ttk.Checkbutton(options,text='Falar respostas no PC',variable=speech,command=preferences).pack(side='left')
     ttk.Checkbutton(options,text='Permitir comandos de abertura',variable=actions,command=preferences).pack(side='left',padx=8)
     ttk.Checkbutton(options,text='Conexão automática',variable=automatic).pack(side='left')
+    voice_row=ttk.Frame(frame);voice_row.pack(fill='x',pady=3)
+    ttk.Label(voice_row,text='Voz:').pack(side='left')
+    voice=ttk.Combobox(voice_row,values=list(VOICES),state='readonly',width=31)
+    voice.set(next(label for label,key in VOICES.items() if key==bridge.speech.voice));voice.pack(side='left',padx=6)
+    def change_voice(event=None):
+        bridge.speech.cancel();bridge.speech.voice=VOICES[voice.get()]
+        try:
+            PREFERENCES.parent.mkdir(parents=True,exist_ok=True)
+            PREFERENCES.write_text(json.dumps({'voice':bridge.speech.voice}),encoding='utf-8')
+        except OSError:append('Não foi possível salvar a escolha de voz.')
+    voice.bind('<<ComboboxSelected>>',change_voice)
+    ttk.Button(voice_row,text='Ouvir exemplo',command=lambda:bridge.speech.say('Olá, eu sou a Tera. Esta é minha voz em português.')).pack(side='left')
     ttk.Label(frame,text='Comandos: “abra a calculadora”, “abra o Bloco de notas”, “abrir GitHub”,\n“abrir YouTube”, “abrir navegador” ou “abrir explorador de arquivos”.').pack(anchor='w',pady=5)
     config = ttk.LabelFrame(frame,text='Configuração da placa',padding=10); config.pack(fill='x',pady=5)
     provider = ttk.Combobox(config,values=['groq','openrouter'],state='readonly'); provider.set('groq')
@@ -121,7 +141,8 @@ def main():
         if automatic.get() and (not bridge.connection or not bridge.connection.is_open) and ports: port.set(ports[0]); connect()
         root.after(3000,auto_connect)
     def close(): bridge.close(); ipc.shutdown(); ipc.server_close(); root.destroy()
-    root.protocol('WM_DELETE_WINDOW',close)
+    ttk.Button(buttons,text='Encerrar assistente',command=close).pack(side='right')
+    root.protocol('WM_DELETE_WINDOW',root.iconify)
     if args.minimized: root.after(100,root.iconify)
     poll(); auto_connect(); root.mainloop()
 

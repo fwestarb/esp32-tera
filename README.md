@@ -2,10 +2,10 @@
 
 Chat de IA para a **TTGO T-Display original**, com tela minimalista em cinza e verde e uma árvore que ganha folhas quando chega uma resposta real.
 
-## Versão 0.5.0
+## Versão 0.5.1
 
 - **Voz de entrada:** microfone analógico em GPIO32. Segure GPIO35 para falar e solte para enviar; até dez segundos. A placa faz a transcrição pela Groq e mostra a resposta na tela.
-- **Voz no computador:** o aplicativo USB fala as respostas com a voz em português instalada no Windows. Não requer uma segunda API. Pode ser desativada ou interrompida; para ao iniciar uma gravação.
+- **Voz no computador:** voz neural local Faber em português (Piper), com Daniel/Maria do Windows como alternativas. Não requer outra API. Pode ser desativada ou interrompida; para ao iniciar uma gravação.
 - **Comandos no PC:** frases definidas abrem calculadora, Bloco de notas, explorador, navegador, GitHub ou YouTube. A IA não executa código nem escolhe comandos arbitrários.
 - **Configuração pelo celular:** rede temporária com senha na tela e página local para Wi-Fi e chave pessoal de IA. Fecha após salvar ou depois de dez minutos.
 - **Contexto curto:** a última troca fica na RAM, com limites de tamanho e opção de limpar. Não é um histórico permanente.
@@ -14,14 +14,20 @@ Chat de IA para a **TTGO T-Display original**, com tela minimalista em cinza e v
 
 ## Usar
 
+### Estabilidade e nova voz — 0.5.1
+
+O aplicativo detecta quando a placa deixa de responder e tenta reconectar. A sessão é renovada após reiniciar a ESP32, sem descartar comandos como duplicados. Mensagens de manutenção não são acumuladas durante consultas bloqueantes. O firmware inclui watchdog de 120 segundos.
+
+Para instalar a voz Faber: `python tools/install_voice.py`. O modelo de aproximadamente 63 MB fica no PC, fora do Git, em um ambiente Python isolado. Selecione a voz no aplicativo e use **Ouvir exemplo**. A escolha é salva localmente, sem credenciais. Os testes incluíram abertura real da calculadora, reset/repareamento da placa, transcrição pela Groq e resposta de chat reproduzida pelo Piper. [Resultados 0.5.1](docs/RESULTADOS-0.5.1.md).
+
 ### No PC
 
 1. Instale Python 3.12 e as dependências: `python -m pip install -r tools/requirements.txt`.
-2. Abra `configurar.cmd`. O aplicativo identifica a TTGO por USB e conecta automaticamente. Deixe-o aberto, mesmo minimizado, para voz e comandos no PC.
+2. Abra `configurar.cmd`. O aplicativo identifica a TTGO por USB e conecta automaticamente. O X minimiza para manter fala e comandos funcionando; **Encerrar assistente** desliga a integração.
 3. Com Wi-Fi e relógio sincronizados, segure GPIO35, fale e solte. Também é possível digitar perguntas e comandos na interface.
 4. Exemplos: **“abra a calculadora”**, **“abrir GitHub”**, **“abra o Bloco de notas”**. Frases diferentes seguem para o chat; não há controle livre do computador.
 
-Para iniciar o aplicativo ao entrar no Windows: `powershell -NoProfile -File tools/install_pc_startup.ps1`. A instalação só cria um atalho na pasta Inicializar do seu usuário. Para remover, apague o atalho **ESP32 Tera** nessa pasta. Fechar o aplicativo encerra a integração com o PC; minimizar mantém o funcionamento.
+Para iniciar o aplicativo ao entrar no Windows: `powershell -NoProfile -File tools/install_pc_startup.ps1`. A instalação só cria um atalho na pasta Inicializar do seu usuário. Para remover, apague o atalho **ESP32 Tera** nessa pasta. O X minimiza; **Encerrar assistente** fecha o aplicativo.
 
 ### Pelo celular
 
@@ -46,7 +52,7 @@ A instalação preserva a configuração NVS existente. Groq é usado para texto
 
 ## Dados, gratuidade e limites
 
-A chave fica na NVS **sem criptografia**, fora do código; não publique backups da flash. O aplicativo não salva chaves ou gravações no PC. A interface pode mostrar transcrições e respostas. Áudio temporário é enviado ao provedor para transcrição; perguntas e uma troca anterior vão para o chat.
+A chave fica na NVS **sem criptografia**, fora do código; não publique backups da flash. O aplicativo não salva chaves ou gravações do microfone no PC. O Piper usa um WAV temporário para falar a resposta e o apaga depois. A interface pode mostrar transcrições e respostas. Áudio temporário é enviado ao provedor para transcrição; perguntas e uma troca anterior vão para o chat.
 
 Use sua chave pessoal de uma conta gratuita. As APIs têm cotas e podem responder 429 mesmo na primeira tentativa, por capacidade ou limite. O firmware não verifica faturamento nem ativa planos. Não há IA local/offline.
 
@@ -71,9 +77,11 @@ O primeiro teste não usa hardware. Os demais usam a placa; o teste integrado us
 
 ## English
 
+**0.5.1 update:** optional offline Portuguese Piper Faber neural speech, selectable Windows alternatives, recent-response checks, reboot/session recovery and a 120-second main-task watchdog. Closing the window minimizes it; the explicit Quit button stops the companion. The model is installed separately on the PC with `python tools/install_voice.py`. Physical tests covered Calculator and neural playback before/after reset, cloud transcription of a synthesized command and a real spoken chat reply. See the new results report.
+
 AI chat for the original TTGO T-Display. Hold GPIO35 to record Portuguese speech and release to submit (maximum ten seconds). The ESP32 sends audio to Groq for transcription, then displays the AI response. Short-press GPIO0 to advance pages; hold it for about two seconds to open a temporary password-protected configuration Wi-Fi network. Connect a phone using the password on the display and browse to **http://192.168.4.1**. The portal closes after saving or ten minutes. Never hold GPIO0 during reset.
 
-The Windows USB companion automatically connects and reads replies using the installed Portuguese voice, without another API. It can open a fixed set of applications/sites through explicit Portuguese commands: calculator, Notepad, Explorer, browser, GitHub and YouTube. AI responses are never interpreted as executable commands. Keep the companion running; minimizing is supported. Optional per-user startup installation creates a removable shortcut.
+The Windows USB companion automatically connects and reads replies using offline Portuguese Piper Faber speech or a selected Windows voice, without another API. It can open a fixed set of applications/sites through explicit Portuguese commands: calculator, Notepad, Explorer, browser, GitHub and YouTube. AI responses are never interpreted as executable commands. Closing the window minimizes it; use the explicit Quit button to stop the assistant. Optional per-user startup installation creates a removable shortcut.
 
 Version 0.5.0 was built/flashed with hash verification. Automated tests covered USB validation, HTTP/DNS on the physical ESP32, the mobile HTML page, Windows playback, a prerecorded microphone clip and a synthesized voice command that opened Calculator. These tests do **not** prove a fresh live microphone/button capture or connection from an actual phone. See the results report for exact scope.
 

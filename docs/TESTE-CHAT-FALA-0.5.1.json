@@ -1,0 +1,93 @@
+{
+  "date": "2026-10-10",
+  "passed": true,
+  "scope": "actual ESP32 Groq chat and real PC Piper playback, not a new live microphone capture",
+  "events": [
+    {
+      "event": "usb",
+      "connected": true,
+      "port": "COM3"
+    },
+    {
+      "event": "status",
+      "version": "0.5.1",
+      "project": "esp32-tera",
+      "bootId": 3272197560,
+      "watchdogSeconds": 120,
+      "networkMessage": "WiFi conectado.",
+      "disconnectReason": 0,
+      "configured": true,
+      "wifi": true,
+      "freeHeap": 229436,
+      "microphone": true,
+      "voiceReady": true,
+      "noiseRms": 4.6,
+      "keyboard": false,
+      "speaker": false,
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b",
+      "stackWatermark": 7932,
+      "clockReady": true,
+      "portal": false,
+      "portalName": "",
+      "portalAddress": "",
+      "pcConnected": false,
+      "pcSpeech": true,
+      "pcActions": true,
+      "history": false
+    },
+    {
+      "event": "bridge_ready",
+      "bootId": 3272197560
+    },
+    {
+      "event": "busy"
+    },
+    {
+      "event": "reply",
+      "message": "Tera está funcionando corretamente."
+    },
+    {
+      "event": "bridge_pong",
+      "bootId": 3272197560
+    },
+    {
+      "event": "status",
+      "version": "0.5.1",
+      "project": "esp32-tera",
+      "bootId": 3272197560,
+      "watchdogSeconds": 120,
+      "networkMessage": "WiFi conectado.",
+      "disconnectReason": 0,
+      "configured": true,
+      "wifi": true,
+      "freeHeap": 229280,
+      "microphone": true,
+      "voiceReady": true,
+      "noiseRms": 4.6,
+      "keyboard": false,
+      "speaker": false,
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b",
+      "stackWatermark": 7804,
+      "clockReady": true,
+      "portal": false,
+      "portalName": "",
+      "portalAddress": "",
+      "pcConnected": true,
+      "pcSpeech": true,
+      "pcActions": true,
+      "history": true
+    },
+    {
+      "event": "speech",
+      "ok": true,
+      "engine": "piper",
+      "voice": "Faber",
+      "culture": "pt-BR",
+      "characters": 35,
+      "elapsedMs": 4594,
+      "mode": "playback"
+    }
+  ]
+}

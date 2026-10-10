@@ -1,0 +1,9 @@
+{
+  "date": "2026-10-10",
+  "version": "0.5.1",
+  "build": "passed",
+  "upload": "passed; esptool flash hash verified",
+  "ramStaticBytes": 47688,
+  "flashCodeBytes": 1046961,
+  "firmwareSha256": "e59b45a9c8c2235a9e6fd6fa3f06e214c4b5882a99611684e2e367c242e4279d"
+}

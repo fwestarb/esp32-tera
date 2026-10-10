@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-10",
+  "passed": true,
+  "engine": "piper-tts 1.4.2",
+  "voice": "pt_BR-faber-medium",
+  "mode": "generated WAV; real playback separately checked in recovery/chat reports",
+  "wave": {
+    "rate": 22050,
+    "seconds": 6.350657596371882,
+    "rms": 4317.29072439586
+  },
+  "modelSha256": "858555e3a064209c57088fe6bd70c4c3dc54d03eaa00c45d5ecaf43a33f95aa7"
+}

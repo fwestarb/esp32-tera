@@ -12,4 +12,6 @@ config.local.json
 private-backups/
 recordings/
 .venv-transcription/
+.venv-tts/
+models/piper/
 !data/cert/x509_crt_bundle.bin

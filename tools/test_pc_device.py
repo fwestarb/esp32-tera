@@ -25,7 +25,7 @@ def pcm8(path):
 def run():
  parser=argparse.ArgumentParser();parser.add_argument('--port',default='COM3');args=parser.parse_args()
  q=queue.Queue();bridge=PCBridge(q.put);results=[]
- def sanitized(event):return {k:v for k,v in event.items() if k not in ('session','portalName')}
+ def sanitized(event):return {k:v for k,v in event.items() if k not in ('session','bridgeSession','portalName')}
  def wait(predicate,timeout=120):
   end=time.monotonic()+timeout
   while time.monotonic()<end:
@@ -67,7 +67,7 @@ def run():
   results.append({'test':'conversation reset and final state','passed':True,'status':sanitized(final)})
  finally:bridge.close()
  report={'date':'2026-10-10','scope':'physical ESP32 cloud requests + Windows real playback and calculator launch; replay/synthetic audio, not new live ADC/button recording','results':results}
- (ROOT/'docs/TESTE-INTEGRACAO-PC-0.5.0.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+ (ROOT/('docs/TESTE-INTEGRACAO-PC-'+state['version']+'.json')).write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
  print('PASS: autonomous physical integration',flush=True)
 
 if __name__=='__main__':run()

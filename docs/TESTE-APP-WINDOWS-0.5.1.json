@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-10",
+  "passed": true,
+  "scope": "real Tk companion automatic COM3 pairing and second launch restoring the same instance; startup shortcut installed",
+  "initialHealth": {
+    "app": "esp32-tera",
+    "usb": true,
+    "port": "COM3",
+    "speech": true,
+    "actions": true,
+    "voice": "piper-faber",
+    "firmware": "0.5.1",
+    "error": ""
+  },
+  "afterSecondLaunch": {
+    "app": "esp32-tera",
+    "usb": true,
+    "port": "COM3",
+    "speech": true,
+    "actions": true,
+    "voice": "piper-faber",
+    "firmware": "0.5.1",
+    "error": ""
+  }
+}

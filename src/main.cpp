@@ -5,6 +5,8 @@
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <time.h>
+#include <esp_task_wdt.h>
+#include <esp_system.h>
 #include "Board.h"
 #include "Settings.h"
 #include "VoiceAudio.h"
@@ -21,6 +23,9 @@ String pcSession,pcPending,historyUser,historyAnswer;
 uint32_t pcLastSeen=0,pcActionId=0,pcDeadline=0;
 bool pcActions=true,pcSpeech=true,portalAttempted=false,menuLong=false;
 uint32_t menuStarted=0;
+uint32_t bootId=0;
+bool watchdogEnabled=false;
+void feedWatchdog(){if(watchdogEnabled)esp_task_wdt_reset();}
 String input, answer, notice = "Configure pelo USB";
 unsigned page=0;
 bool dropping=false,lastButton=false;
@@ -63,7 +68,8 @@ void emit(const char* type,const String& message=""){
  DynamicJsonDocument doc(256+message.length());doc["event"]=type;if(message.length())doc["message"]=message;serializeJson(doc,Serial);Serial.println();
 }
 void status(){
- StaticJsonDocument<1536> doc;doc["event"]="status";doc["version"]="0.5.0";doc["project"]="esp32-tera";
+ StaticJsonDocument<1536> doc;doc["event"]="status";doc["version"]="0.5.1";doc["project"]="esp32-tera";
+ doc["bootId"]=bootId;doc["bridgeSession"]=pcSession;doc["watchdogSeconds"]=watchdogEnabled?120:0;
  doc["networkMessage"]=wifiDiagnosis();doc["disconnectReason"]=disconnectReason;
  doc["configured"]=settings.wifiSsid.length()>0&&settings.apiKey.length()>0;doc["wifi"]=WiFi.status()==WL_CONNECTED;
  doc["freeHeap"]=ESP.getFreeHeap();doc["microphone"]=true;doc["voiceReady"]=!portal.active()&&settings.provider=="groq"&&settings.apiKey.length()>0&&WiFi.status()==WL_CONNECTED&&time(nullptr)>=1700000000;doc["noiseRms"]=noiseRms;doc["keyboard"]=false;doc["speaker"]=false;doc["provider"]=settings.provider;doc["model"]=settings.provider=="groq"?"openai/gpt-oss-20b":"google/gemma-4-26b-a4b-it:free";
@@ -117,6 +123,7 @@ void dispatchInput(const String& text){
  StaticJsonDocument<256> doc;doc["event"]="pc_action";doc["session"]=pcSession;doc["id"]=pcActionId;doc["target"]=action;serializeJson(doc,Serial);Serial.println();
 }
 void chat(const String& prompt){
+ feedWatchdog();
  if(portal.active()){emit("error","Feche a configuracao pelo celular antes de consultar a IA.");return;}
  if(!settings.apiKey.length()){emit("error","Configure sua chave primeiro.");return;}
  if(WiFi.status()!=WL_CONNECTED){emit("error",wifiDiagnosis());return;}
@@ -151,6 +158,7 @@ bool voiceReady(){
  return true;
 }
 void transcribe(VoiceAudio& recording){
+ feedWatchdog();
  notice="Transcrevendo...";render();emit("busy","Transcrevendo audio na Groq.");
  String text;
  {
@@ -217,9 +225,9 @@ void command(const String& line){
  if(op=="bridge_hello"||op=="bridge_ping"){
   String session=doc["session"]|"";bool valid=session.length()==32;for(unsigned i=0;i<session.length();i++)valid=valid&&isxdigit((unsigned char)session[i]);
   if(!valid||(op=="bridge_ping"&&session!=pcSession)){emit("error","Sessao do PC invalida.");return;}
-  if(op=="bridge_hello"){pcSession=session;pcPending="";}
+  if(op=="bridge_hello"&&session!=pcSession){pcSession=session;pcPending="";}
   pcLastSeen=millis();if(doc["actions"].is<bool>())pcActions=doc["actions"].as<bool>();if(doc["speech"].is<bool>())pcSpeech=doc["speech"].as<bool>();
-  if(op=="bridge_hello")emit("bridge_ready");return;
+  StaticJsonDocument<192> ack;ack["event"]=op=="bridge_hello"?"bridge_ready":"bridge_pong";ack["session"]=pcSession;ack["bootId"]=bootId;serializeJson(ack,Serial);Serial.println();return;
  }
  if(op=="pc_result"){
   if(!pcPending.length()||doc["session"]!=pcSession||!doc["id"].is<uint32_t>()||doc["id"].as<uint32_t>()!=pcActionId||!doc["ok"].is<bool>()){emit("error","Resultado do PC invalido.");return;}
@@ -287,12 +295,15 @@ void command(const String& line){
  emit("error","Comando desconhecido.");
 }
 void setup(){
+ bootId=esp_random();
  Serial.setRxBufferSize(4096);Serial.begin(115200);Serial.setDebugOutput(false);pinMode(Board::menuButton,INPUT_PULLUP);pinMode(Board::talkButton,INPUT);pinMode(Board::microphone,INPUT);analogReadResolution(12);analogSetPinAttenuation(Board::microphone,ADC_11db);
  WiFi.onEvent([](WiFiEvent_t event,WiFiEventInfo_t info){if(event==ARDUINO_EVENT_WIFI_STA_DISCONNECTED)disconnectReason=info.wifi_sta_disconnected.reason;});
  settings.load();screen.init();screen.setRotation(1);pinMode(Board::displayBacklight,OUTPUT);digitalWrite(Board::displayBacklight,HIGH);
+ watchdogEnabled=esp_task_wdt_init(120,true)==ESP_OK&&esp_task_wdt_add(nullptr)==ESP_OK;
  input.reserve(3072);connectWifi();if(!settings.wifiSsid.length()){portalAttempted=true;showPortal();}render();status();
 }
 void loop(){
+ feedWatchdog();
  while(Serial.available()){
   char c=Serial.read();if(c=='\n'){if(dropping)emit("error","Comando excede 3072 bytes.");else if(input.length())command(input);input="";dropping=false;}
   else if(c!='\r'&&!dropping){if(input.length()>=3072){dropping=true;input="";}else input+=c;}

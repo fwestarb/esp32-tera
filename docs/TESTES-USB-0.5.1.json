@@ -1,0 +1,107 @@
+{
+  "date": "2026-10-10",
+  "target": "physical TTGO T-Display original",
+  "results": [
+    {
+      "test": "firmware boots and status responds",
+      "passed": true,
+      "status": {
+        "event": "status",
+        "version": "0.5.1",
+        "project": "esp32-tera",
+        "bootId": 3272197560,
+        "watchdogSeconds": 120,
+        "networkMessage": "WiFi conectado.",
+        "disconnectReason": 0,
+        "configured": true,
+        "wifi": true,
+        "freeHeap": 229436,
+        "microphone": true,
+        "voiceReady": true,
+        "noiseRms": 4.6,
+        "keyboard": false,
+        "speaker": false,
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "stackWatermark": 7932,
+        "clockReady": true,
+        "portal": false,
+        "portalName": "",
+        "portalAddress": "",
+        "pcConnected": false,
+        "pcSpeech": true,
+        "pcActions": true,
+        "history": false
+      }
+    },
+    {
+      "test": "invalid JSON",
+      "passed": true,
+      "response": {
+        "event": "error",
+        "message": "JSON invalido."
+      }
+    },
+    {
+      "test": "unknown command",
+      "passed": true,
+      "response": {
+        "event": "error",
+        "message": "Comando desconhecido."
+      }
+    },
+    {
+      "test": "missing configuration",
+      "passed": true,
+      "response": {
+        "event": "error",
+        "message": "Configuracao incompleta."
+      }
+    },
+    {
+      "test": "empty message",
+      "passed": true,
+      "response": {
+        "event": "error",
+        "message": "Envie de 1 a 1024 bytes de texto."
+      }
+    },
+    {
+      "test": "overlong message",
+      "passed": true,
+      "response": {
+        "event": "error",
+        "message": "Envie de 1 a 1024 bytes de texto."
+      }
+    },
+    {
+      "test": "oversize serial command",
+      "passed": true,
+      "response": {
+        "event": "error",
+        "message": "Comando excede 3072 bytes."
+      }
+    },
+    {
+      "test": "paid model rejected",
+      "passed": true,
+      "response": {
+        "event": "error",
+        "message": "Modelo personalizado nao permitido."
+      }
+    },
+    {
+      "test": "header injection rejected",
+      "passed": true,
+      "response": {
+        "event": "error",
+        "message": "Formato da chave invalido."
+      }
+    },
+    {
+      "test": "invalid commands do not change configured state",
+      "passed": true
+    }
+  ],
+  "scope": "USB protocol validation only; no authenticated AI requests or microphone capture in this suite"
+}

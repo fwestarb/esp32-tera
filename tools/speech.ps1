@@ -9,7 +9,8 @@ try {
     $teraSynth = New-Object System.Speech.Synthesis.SpeechSynthesizer
     $teraInstalled = @($teraSynth.GetInstalledVoices() | Where-Object { $_.Enabled })
     $teraPortuguese = @($teraInstalled | Where-Object { $_.VoiceInfo.Culture.Name -eq 'pt-BR' })
-    if ($teraPortuguese.Count -gt 0) { $teraSynth.SelectVoice($teraPortuguese[0].VoiceInfo.Name) }
+    if ($teraRequest.voice) { $teraSynth.SelectVoice([string]$teraRequest.voice) }
+    elseif ($teraPortuguese.Count -gt 0) { $teraSynth.SelectVoice($teraPortuguese[0].VoiceInfo.Name) }
     $teraSynth.Rate = 0
     $teraSynth.Volume = 80
     if ($teraRequest.wav) { $teraSynth.SetOutputToWaveFile([string]$teraRequest.wav) }

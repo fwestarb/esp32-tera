@@ -1,0 +1,8 @@
+{
+  "date": "2026-10-10",
+  "tests": 21,
+  "failures": 0,
+  "errors": 0,
+  "passed": true,
+  "scope": "mocked regression: session/reset, stale heartbeat, timeout, no UART flooding while busy, desktop allowlist and speech cancellation"
+}

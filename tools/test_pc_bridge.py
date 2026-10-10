@@ -25,6 +25,7 @@ class Tests(unittest.TestCase):
   self.speech=Speech();self.executor=Executor();self.events=[]
   self.bridge=PCBridge(self.events.append,self.executor,self.speech)
   self.bridge.connection=Connection();self.bridge.ready=True
+  self.bridge.connected_at=time.monotonic()
  def action(self,**values):
   event={'event':'pc_action','session':self.bridge.session,'id':1,'target':'calculator'};event.update(values)
   self.bridge.handle(event)
@@ -43,8 +44,34 @@ class Tests(unittest.TestCase):
  def test_recording_stops_speech(self):self.bridge.handle({'event':'recording'});self.assertEqual(self.speech.cancelled,1)
  def test_fixture_error_releases_lock(self):self.bridge.fixture=b'x';self.bridge.handle({'event':'error','message':'Fixture invalida.'});self.assertIsNone(self.bridge.fixture)
  def test_repair_after_board_reset(self):
-  self.bridge.handle({'event':'status','project':'esp32-tera','version':'0.5.0','pcConnected':False})
+  self.bridge.boot_id=1
+  self.bridge.handle({'event':'status','project':'esp32-tera','version':'0.5.1','pcConnected':False,'bootId':2,'bridgeSession':''})
   self.assertFalse(self.bridge.ready);self.assertIn(b'bridge_hello',self.bridge.connection.writes[-1])
+ def test_stale_heartbeat_does_not_drop_session(self):
+  self.bridge.handle({'event':'status','project':'esp32-tera','version':'0.5.0','pcConnected':False})
+  self.assertTrue(self.bridge.ready);self.assertFalse(self.bridge.connection.writes)
+ def test_reset_clears_action_deduplication(self):
+  self.action();self.bridge.boot_id=1
+  self.bridge.handle({'event':'status','project':'esp32-tera','version':'0.5.1','bootId':2,'bridgeSession':''})
+  self.bridge.handle({'event':'bridge_ready','session':self.bridge.session,'bootId':2})
+  self.action();self.assertEqual(self.executor.calls,['calculator','calculator'])
+ def test_silent_usb_is_closed(self):
+  class Silent(Connection):
+   in_waiting=0
+   def read(self,size):return b''
+  self.bridge.connection=Silent();self.bridge.connected_at=time.monotonic()-20;self.bridge._read()
+  self.assertFalse(self.bridge.ready);self.assertFalse(self.bridge.connection.is_open)
+ def test_busy_device_is_not_flooded_with_heartbeats(self):
+  clock=[100.0]
+  class Busy(Connection):
+   in_waiting=0
+   def read(self,size):
+    clock[0]+=4
+    if clock[0]>=108:self.is_open=False
+    return b''
+  self.bridge.connection=Busy();self.bridge.connected_at=100;self.bridge.last_received=100;self.bridge.busy=True
+  with patch('pc_bridge.time.monotonic',side_effect=lambda:clock[0]):self.bridge._read()
+  self.assertFalse(self.bridge.connection.writes)
  def test_executor_rejects_unknown(self):
   with patch('pc_bridge.subprocess.Popen') as process:
    with self.assertRaises(ValueError):ActionExecutor().execute('cmd.exe')
