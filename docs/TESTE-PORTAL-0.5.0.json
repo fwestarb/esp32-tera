@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-10",
+  "scope": "HTTP and captive DNS exercised on physical ESP32 via AP interface loopback; no external phone client",
+  "report": {
+    "event": "portal_test",
+    "cases": [
+      {
+        "test": "page",
+        "http": 200,
+        "passed": true
+      },
+      {
+        "test": "missing token",
+        "http": 403,
+        "passed": true
+      },
+      {
+        "test": "status",
+        "http": 200,
+        "passed": true
+      },
+      {
+        "test": "invalid JSON",
+        "http": 400,
+        "passed": true
+      },
+      {
+        "test": "invalid configuration",
+        "http": 400,
+        "passed": true
+      },
+      {
+        "test": "oversize configuration",
+        "http": 413,
+        "passed": true
+      },
+      {
+        "test": "unknown page redirect",
+        "http": 302,
+        "passed": true
+      },
+      {
+        "test": "captive DNS",
+        "passed": true
+      },
+      {
+        "test": "save existing configuration",
+        "http": 200,
+        "passed": true
+      }
+    ],
+    "credentialsPreserved": true,
+    "passed": true,
+    "apActive": true
+  }
+}

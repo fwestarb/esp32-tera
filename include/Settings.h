@@ -1,16 +1,14 @@
 #pragma once
 #include <Arduino.h>
+#include <ArduinoJson.h>
 
 struct Settings {
   String wifiSsid;
   String wifiPassword;
   String apiKey;
-  String provider = "openrouter";
-  String textModel = "openrouter/free";
-  bool microphoneEnabled = false;
-  bool speakerEnabled = false;
-  bool keyboardEnabled = false;
-  uint8_t volume = 50;
+  String provider = "groq";
   void load();
   bool save();
+  bool valid(String& error) const;
+  static bool parse(JsonObjectConst doc, const Settings& current, bool keepBlank, Settings& next, String& error);
 };

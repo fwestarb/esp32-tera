@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-10",
+  "synthesis": {
+    "characters": 19,
+    "elapsedMs": 52,
+    "ok": true,
+    "voice": "Microsoft Maria Desktop",
+    "mode": "wav",
+    "culture": "pt-BR"
+  },
+  "wave": {
+    "rate": 22050,
+    "channels": 1,
+    "width": 2,
+    "frames": 54113,
+    "rms": 1140.9260046709687
+  }
+}

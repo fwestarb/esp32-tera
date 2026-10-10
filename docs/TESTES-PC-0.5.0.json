@@ -1,0 +1,8 @@
+{
+  "date": "2026-10-10",
+  "scope": "host regression tests with mocked execution, plus disabled real speech worker; not cloud/hardware",
+  "tests": 17,
+  "failures": 0,
+  "errors": 0,
+  "passed": true
+}

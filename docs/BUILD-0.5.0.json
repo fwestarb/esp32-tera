@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-10",
+  "environment": "ttgo_t_display",
+  "version": "0.5.0",
+  "build": "passed",
+  "upload": "passed; esptool verified flash hash",
+  "ramStaticBytes": 47680,
+  "flashCodeBytes": 1046597,
+  "flashPartitionBytes": 1310720,
+  "firmwareFileBytes": 1052896,
+  "firmwareSha256": "75bc10020e5bd77f7921f82a9cdb9850176a28a48a12a32b2c210dfa4e8c71a3",
+  "micTestBuild": "passed; not flashed"
+}

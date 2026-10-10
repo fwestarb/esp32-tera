@@ -1,4 +1,4 @@
-# Voz na TTGO original — firmware 0.4.0
+# Voz na TTGO original — firmware 0.5.0
 
 ## Uso
 
@@ -6,15 +6,15 @@
 2. O amplificador analogico permanece conectado em **GPIO32**, com terra comum e alimentacao 3,3 V.
 3. Segure o botao **GPIO35**, fale perto do microfone e solte para enviar. O outro botao, GPIO0, muda a pagina da resposta. Nao segure GPIO0 durante o reset.
 4. A tela mostra GRAVANDO, Transcrevendo e Consultando IA. O limite e 10 segundos; ao atingir esse limite, o envio acontece automaticamente e o botao precisa ser solto antes da proxima gravacao.
-5. A resposta aparece na tela. Nao existe reproducao de voz nesta versao.
+5. A resposta aparece na tela. Com o aplicativo USB aberto no Windows, ela tambem e falada pela voz local em portugues. Sem PC, nao existe reproducao de voz nesta montagem.
 
-A placa envia o audio diretamente por HTTPS para a **Groq** (Whisper large v3 turbo, idioma portugues), recebe o texto e consulta `openai/gpt-oss-20b`. Cada pergunta e independente. Sao dois pedidos de API por pergunta falada. Nao executa comandos no computador nem controla aparelhos; permite fazer pedidos e perguntas a IA por voz.
+A placa envia o audio diretamente por HTTPS para a **Groq** (Whisper large v3 turbo, idioma portugues), recebe o texto e consulta `openai/gpt-oss-20b`. O chat conserva somente a ultima troca, limitada em RAM; reiniciar ou limpar a conversa apaga esse contexto. Sao dois pedidos de API por pergunta falada. Com o aplicativo USB conectado, comandos exatos podem abrir calculadora, Bloco de notas, explorador, navegador, GitHub ou YouTube. Respostas da IA nao sao executadas como comandos.
 
-O computador serve para instalar/configurar e observar logs. O envio de voz pelo botao e feito pela ESP32. Para testar sem PC, a placa ainda precisa de alimentacao USB ou outra fonte adequada e Wi-Fi. Nao ha processamento de IA local/offline.
+O computador serve para instalar/configurar, observar logs, falar respostas e executar os comandos permitidos. O envio de voz pelo botao e feito pela ESP32. Para testar sem PC, a placa ainda precisa de alimentacao USB ou outra fonte adequada e Wi-Fi. Nao ha processamento de IA local/offline.
 
 ## Configuracao
 
-Abra `configurar.cmd`, selecione `groq` e salve Wi-Fi 2,4 GHz e sua chave `gsk_...`. Uma chave OpenRouter serve somente para texto nesta versao. Mantenha sua conta Groq no plano Free; existem cotas de audio e texto. O firmware nao verifica faturamento nem ativa planos. Nao ha provedor pago de reserva.
+Segure GPIO0 por aproximadamente dois segundos para abrir a rede temporaria TERA. Use a senha mostrada na tela, conecte o celular e abra http://192.168.4.1. Alternativamente, abra `configurar.cmd`, selecione `groq` e salve Wi-Fi 2,4 GHz e sua chave `gsk_...`. Uma chave OpenRouter serve somente para texto nesta versao. Mantenha sua conta Groq no plano Free; existem cotas de audio e texto. O firmware nao verifica faturamento nem ativa planos. Nao ha provedor pago de reserva.
 
 Nao envie chaves pelo chat. A chave fica na NVS **sem criptografia**, fora do codigo. O audio e temporario na RAM e nao e salvo na flash ou enviado por USB. Ele sai da placa para o provedor quando voce solta o botao. Logs USB mostram transcricao/resposta: evite publicar falas privadas.
 
@@ -48,7 +48,7 @@ Para voltar ao gravador USB independente: `pio run -e mic_test -t upload --uploa
 
 ## English
 
-Hold GPIO35 to record, release to submit; maximum ten seconds. Analog input is GPIO32. Groq Whisper transcribes Portuguese speech and GPT OSS answers on the display; GPIO0 advances pages. No speaker output, keyboard, conversation history or device control is implemented. Wi-Fi and power are required; the PC is only needed for installation/configuration and optional logs.
+Hold GPIO35 to record, release to submit; maximum ten seconds. Analog input is GPIO32. Groq Whisper transcribes Portuguese speech and GPT OSS answers on the display; GPIO0 advances pages. Windows speech output and a fixed allowlist of desktop opening commands are available through the USB companion. One bounded previous turn is kept in RAM. No physical speaker or keyboard is implemented. Wi-Fi and power are required; standalone cloud chat does not depend on the PC.
 
 Audio is normalized and sent as 8-bit mono WAV over certificate-verified HTTPS, with software sampling at nominal 8 kHz. Temporary audio stays in RAM until uploaded; API credentials remain in unencrypted NVS. Use your own Groq Free key, subject to quotas. Short/weak/clipped captures and high no-speech results are rejected, but recognition and silence filtering are imperfect.
 

@@ -13,7 +13,6 @@ void Settings::load() {
       wifiPassword = doc["password"].as<String>();
       apiKey = doc["key"].as<String>();
       provider = doc["provider"] | "openrouter";
-      textModel = "openrouter/free";
     }
     storage.end();
     return;
@@ -21,12 +20,36 @@ void Settings::load() {
   wifiSsid = storage.getString("ssid", "");
   wifiPassword = storage.getString("wifi_pass", "");
   apiKey = storage.getString("api_key", "");
-  textModel = storage.getString("text_model", "openrouter/free");
-  microphoneEnabled = storage.getBool("mic", false);
-  speakerEnabled = storage.getBool("speaker", false);
-  keyboardEnabled = storage.getBool("keyboard", false);
-  volume = constrain(storage.getUChar("volume", 50), 0, 100);
+  provider = storage.getString("provider", "openrouter");
   storage.end();
+}
+
+bool Settings::valid(String& error) const {
+  if (provider != "groq" && provider != "openrouter") { error="Provedor nao permitido."; return false; }
+  if (wifiSsid.length()<1 || wifiSsid.length()>32 || wifiPassword.length()>63 || (wifiPassword.length()>0 && wifiPassword.length()<8)) {
+    error="Confira o nome da rede (1-32 bytes) e a senha (8-63 caracteres, ou rede aberta).";return false;
+  }
+  if (apiKey.length()<20 || apiKey.length()>256 || !apiKey.startsWith(provider=="groq"?"gsk_":"sk-or-")) {
+    error="Informe uma chave valida para o provedor selecionado.";return false;
+  }
+  for (unsigned i=0;i<apiKey.length();i++) if (!isalnum((unsigned char)apiKey[i]) && apiKey[i]!='-' && apiKey[i]!='_') {
+    error="Formato da chave invalido.";return false;
+  }
+  return true;
+}
+
+bool Settings::parse(JsonObjectConst doc, const Settings& current, bool keepBlank, Settings& next, String& error) {
+  if (!doc["ssid"].is<String>() || !doc["password"].is<String>() || !doc["key"].is<String>()) {
+    error="Configuracao incompleta.";return false;
+  }
+  next.wifiSsid=doc["ssid"].as<String>();next.wifiPassword=doc["password"].as<String>();next.apiKey=doc["key"].as<String>();
+  next.provider=doc["provider"] | (keepBlank?current.provider.c_str():"openrouter");
+  if (doc.containsKey("model") && doc["model"]!="openrouter/free") { error="Modelo personalizado nao permitido.";return false; }
+  if (keepBlank) {
+    if (!next.wifiPassword.length() && next.wifiSsid==current.wifiSsid && !(doc["openNetwork"]|false)) next.wifiPassword=current.wifiPassword;
+    if (!next.apiKey.length() && next.provider==current.provider) next.apiKey=current.apiKey;
+  }
+  return next.valid(error);
 }
 
 bool Settings::save() {

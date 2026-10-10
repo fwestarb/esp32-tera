@@ -1,0 +1,229 @@
+{
+  "date": "2026-10-10",
+  "scope": "physical ESP32 cloud requests + Windows real playback and calculator launch; replay/synthetic audio, not new live ADC/button recording",
+  "results": [
+    {
+      "test": "USB pairing and cloud ready",
+      "passed": true,
+      "status": {
+        "event": "status",
+        "version": "0.5.0",
+        "project": "esp32-tera",
+        "networkMessage": "WiFi conectado.",
+        "disconnectReason": 0,
+        "configured": true,
+        "wifi": true,
+        "freeHeap": 230228,
+        "microphone": true,
+        "voiceReady": true,
+        "noiseRms": 4.6,
+        "keyboard": false,
+        "speaker": false,
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "stackWatermark": 12028,
+        "clockReady": true,
+        "portal": false,
+        "portalAddress": "",
+        "pcConnected": true,
+        "pcSpeech": true,
+        "pcActions": true,
+        "history": false
+      }
+    },
+    {
+      "test": "previous microphone recording",
+      "passed": true,
+      "source": "microfone-2026-10-09-10seg-capacitor-teste2.wav",
+      "sha256": "2af63863a4e18b5bf47bf497f30bef47d9338342c9f5153fa809a7a81ee1512b",
+      "elapsedSeconds": 19.94,
+      "events": [
+        {
+          "event": "fixture_ready",
+          "message": "Teste com audio previamente gravado, nao captacao ao vivo."
+        },
+        {
+          "event": "busy",
+          "message": "Transcrevendo audio na Groq."
+        },
+        {
+          "event": "audio_upload",
+          "http": 200,
+          "bodyBytesRead": 80524,
+          "expectedBytes": 80524,
+          "freeHeap": 100596
+        },
+        {
+          "event": "transcript",
+          "message": "Este é um áudio de 10 segundos para verificar se consegue entender todas as palavras. 1, 2, 3..."
+        },
+        {
+          "event": "busy"
+        },
+        {
+          "event": "reply",
+          "message": "Entendi o texto. Tudo certo!"
+        },
+        {
+          "event": "status",
+          "version": "0.5.0",
+          "project": "esp32-tera",
+          "networkMessage": "WiFi conectado.",
+          "disconnectReason": 0,
+          "configured": true,
+          "wifi": true,
+          "freeHeap": 229300,
+          "microphone": true,
+          "voiceReady": true,
+          "noiseRms": 4.6,
+          "keyboard": false,
+          "speaker": false,
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b",
+          "stackWatermark": 6332,
+          "clockReady": true,
+          "portal": false,
+          "portalAddress": "",
+          "pcConnected": true,
+          "pcSpeech": true,
+          "pcActions": true,
+          "history": true
+        },
+        {
+          "event": "speech",
+          "characters": 28,
+          "elapsedMs": 4444,
+          "ok": true,
+          "voice": "Microsoft Maria Desktop",
+          "mode": "playback",
+          "culture": "pt-BR"
+        }
+      ]
+    },
+    {
+      "test": "synthesized voice command",
+      "passed": true,
+      "source": "tera-comando-calculadora.wav",
+      "sha256": "8ed5b0bc67b9ce54e93f4240f4bcfa04e693fb9006065d00af111173b33b9a92",
+      "elapsedSeconds": 10.2,
+      "events": [
+        {
+          "event": "fixture_ready",
+          "message": "Teste com audio previamente gravado, nao captacao ao vivo."
+        },
+        {
+          "event": "busy",
+          "message": "Transcrevendo audio na Groq."
+        },
+        {
+          "event": "audio_upload",
+          "http": 200,
+          "bodyBytesRead": 20157,
+          "expectedBytes": 20157,
+          "freeHeap": 105340
+        },
+        {
+          "event": "transcript",
+          "message": "Abra a calculadora."
+        },
+        {
+          "event": "busy",
+          "message": "Solicitando abertura no PC..."
+        },
+        {
+          "event": "action_result",
+          "ok": true,
+          "target": "calculator",
+          "pid": 23308
+        },
+        {
+          "event": "pc_action",
+          "id": 1,
+          "target": "calculator"
+        },
+        {
+          "event": "reply",
+          "message": "Solicitei ao PC que abrisse a calculadora."
+        },
+        {
+          "event": "status",
+          "version": "0.5.0",
+          "project": "esp32-tera",
+          "networkMessage": "WiFi conectado.",
+          "disconnectReason": 0,
+          "configured": true,
+          "wifi": true,
+          "freeHeap": 229292,
+          "microphone": true,
+          "voiceReady": true,
+          "noiseRms": 4.6,
+          "keyboard": false,
+          "speaker": false,
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b",
+          "stackWatermark": 6332,
+          "clockReady": true,
+          "portal": false,
+          "portalAddress": "",
+          "pcConnected": true,
+          "pcSpeech": true,
+          "pcActions": true,
+          "history": true
+        },
+        {
+          "event": "speech",
+          "characters": 42,
+          "elapsedMs": 4086,
+          "ok": true,
+          "voice": "Microsoft Maria Desktop",
+          "mode": "playback",
+          "culture": "pt-BR"
+        }
+      ]
+    },
+    {
+      "test": "bounded last-turn context",
+      "passed": true,
+      "firstReply": "Entendido.",
+      "secondReply": "Felipe",
+      "speech": {
+        "event": "speech",
+        "characters": 6,
+        "elapsedMs": 1680,
+        "ok": true,
+        "voice": "Microsoft Maria Desktop",
+        "mode": "playback",
+        "culture": "pt-BR"
+      }
+    },
+    {
+      "test": "conversation reset and final state",
+      "passed": true,
+      "status": {
+        "event": "status",
+        "version": "0.5.0",
+        "project": "esp32-tera",
+        "networkMessage": "WiFi conectado.",
+        "disconnectReason": 0,
+        "configured": true,
+        "wifi": true,
+        "freeHeap": 229328,
+        "microphone": true,
+        "voiceReady": true,
+        "noiseRms": 4.6,
+        "keyboard": false,
+        "speaker": false,
+        "provider": "groq",
+        "model": "openai/gpt-oss-20b",
+        "stackWatermark": 6332,
+        "clockReady": true,
+        "portal": false,
+        "portalAddress": "",
+        "pcConnected": true,
+        "pcSpeech": true,
+        "pcActions": true,
+        "history": false
+      }
+    }
+  ]
+}

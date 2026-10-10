@@ -44,3 +44,9 @@ A validacao integrada esta registrada separadamente em `TESTE-AUDIO-MEMORIA-0.4.
 ## Atualização 06/10/2026
 
 A etapa de USB/configuração e o código de Wi-Fi/chat de texto estão implementados. Build, upload e validações USB foram testados na placa. Conexão Wi-Fi e resposta real da IA ainda aguardam credenciais e teste do usuário; veja RESULTADOS.md. A entrada atual é pelo computador via USB. Teclado e áudio permanecem pendentes; ainda não há chat autônomo completo.
+
+## Atualização 10/10/2026 — versão 0.5.0
+
+Implementados: portal Wi-Fi de configuração com senha temporária, aplicativo Windows com fala local, abertura de programas/sites por comandos definidos e contexto da última troca em RAM. A entrada física continua em GPIO32/35. O portal e a integração PC têm testes automatizados; veja RESULTADOS-0.5.0.md. O PC só é necessário para a voz de saída e as ações de abertura, além da instalação.
+
+Próximas etapas: teclado opcional quando disponível; saída de áudio física quando as peças forem definidas; maior responsividade durante HTTPS. Captura nova pelo botão e conexão de um celular real não foram acrescentadas aos testes desta etapa, que não exigiu participação do usuário.

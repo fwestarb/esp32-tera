@@ -8,11 +8,19 @@
 #include "Board.h"
 #include "Settings.h"
 #include "VoiceAudio.h"
+#include "Portal.h"
 // Certificate verification plus the voice/command call chain exceeds 8 KB.
 SET_LOOP_TASK_STACK_SIZE(16384);
 extern const uint8_t caRoots[] asm("_binary_data_cert_openrouter_roots_pem_start");
 TFT_eSPI screen;
 Settings settings;
+bool applyConfiguration(JsonObjectConst doc,bool keepBlank,String& error);
+Portal portal(settings,[](JsonObjectConst doc,String& error){return applyConfiguration(doc,true,error);});
+uint32_t reconnectAt=0;
+String pcSession,pcPending,historyUser,historyAnswer;
+uint32_t pcLastSeen=0,pcActionId=0,pcDeadline=0;
+bool pcActions=true,pcSpeech=true,portalAttempted=false,menuLong=false;
+uint32_t menuStarted=0;
 String input, answer, notice = "Configure pelo USB";
 unsigned page=0;
 bool dropping=false,lastButton=false;
@@ -52,21 +60,64 @@ void render(){
  screen.setTextColor(moss,bg);screen.drawString("35: falar | 0: pagina "+String(page+1)+"/"+String(pages),8,119,1);
 }
 void emit(const char* type,const String& message=""){
- DynamicJsonDocument doc(6144);doc["event"]=type;if(message.length())doc["message"]=message;serializeJson(doc,Serial);Serial.println();
+ DynamicJsonDocument doc(256+message.length());doc["event"]=type;if(message.length())doc["message"]=message;serializeJson(doc,Serial);Serial.println();
 }
 void status(){
- StaticJsonDocument<1024> doc;doc["event"]="status";doc["version"]="0.4.0";
+ StaticJsonDocument<1536> doc;doc["event"]="status";doc["version"]="0.5.0";doc["project"]="esp32-tera";
  doc["networkMessage"]=wifiDiagnosis();doc["disconnectReason"]=disconnectReason;
  doc["configured"]=settings.wifiSsid.length()>0&&settings.apiKey.length()>0;doc["wifi"]=WiFi.status()==WL_CONNECTED;
- doc["freeHeap"]=ESP.getFreeHeap();doc["microphone"]=true;doc["voiceReady"]=settings.provider=="groq"&&settings.apiKey.length()>0&&WiFi.status()==WL_CONNECTED&&time(nullptr)>=1700000000;doc["noiseRms"]=noiseRms;doc["keyboard"]=false;doc["speaker"]=false;doc["provider"]=settings.provider;doc["model"]=settings.provider=="groq"?"openai/gpt-oss-20b":"google/gemma-4-26b-a4b-it:free";
+ doc["freeHeap"]=ESP.getFreeHeap();doc["microphone"]=true;doc["voiceReady"]=!portal.active()&&settings.provider=="groq"&&settings.apiKey.length()>0&&WiFi.status()==WL_CONNECTED&&time(nullptr)>=1700000000;doc["noiseRms"]=noiseRms;doc["keyboard"]=false;doc["speaker"]=false;doc["provider"]=settings.provider;doc["model"]=settings.provider=="groq"?"openai/gpt-oss-20b":"google/gemma-4-26b-a4b-it:free";
  doc["stackWatermark"]=uxTaskGetStackHighWaterMark(nullptr);
+ doc["clockReady"]=time(nullptr)>=1700000000;doc["portal"]=portal.active();doc["portalName"]=portal.active()?portal.name():"";doc["portalAddress"]=portal.active()?"192.168.4.1":"";
+ doc["pcConnected"]=pcSession.length()>0&&millis()-pcLastSeen<10000;doc["pcSpeech"]=pcSpeech;doc["pcActions"]=pcActions;doc["history"]=historyUser.length()>0;
  serializeJson(doc,Serial);Serial.println();
 }
 void connectWifi(){
  wifiStarted=millis();wifiReported=false;disconnectReason=0;
- WiFi.mode(WIFI_STA);if(settings.wifiSsid.length()){WiFi.begin(settings.wifiSsid.c_str(),settings.wifiPassword.c_str());configTime(0,0,"pool.ntp.org","time.google.com");notice="Conectando WiFi. Depois segure GPIO35 para falar.";}
+ WiFi.mode(portal.active()?WIFI_AP_STA:WIFI_STA);if(settings.wifiSsid.length()){WiFi.begin(settings.wifiSsid.c_str(),settings.wifiPassword.c_str());configTime(0,0,"pool.ntp.org","time.google.com");notice="Conectando WiFi. Depois segure GPIO35 para falar.";}
+}
+bool applyConfiguration(JsonObjectConst doc,bool keepBlank,String& error){
+ Settings next;if(!Settings::parse(doc,settings,keepBlank,next,error))return false;
+ if(next.wifiSsid==settings.wifiSsid&&next.wifiPassword==settings.wifiPassword&&next.apiKey==settings.apiKey&&next.provider==settings.provider){reconnectAt=millis()+1500;return true;}
+ if(!next.save()){error="Falha ao salvar na placa.";return false;}
+ settings=next;historyUser="";historyAnswer="";reconnectAt=millis()+1500;return true;
+}
+void showPortal(){
+ if(!portal.start()){notice="Falha ao abrir configuracao.";render();emit("error",notice);return;}
+ answer="";page=0;notice="CONFIGURAR PELO CELULAR Rede: "+portal.name()+" Senha: "+portal.password()+" Abra http://192.168.4.1 . Segure GPIO0 para fechar.";render();emit("network","Configuracao pelo celular aberta. Rede: "+portal.name()+". Veja a senha na tela da TTGO; abra http://192.168.4.1.");
+}
+String classifyAction(String text){
+ text=displayText(text);text.toLowerCase();text.trim();while(text.endsWith(".")||text.endsWith("!")||text.endsWith("?"))text.remove(text.length()-1);
+ while(text.indexOf("  ")>=0)text.replace("  "," ");
+ if(text.startsWith("tera "))text.remove(0,5);if(text.startsWith("por favor "))text.remove(0,10);
+ if(text.startsWith("abra "))text.remove(0,5);else if(text.startsWith("abrir "))text.remove(0,6);else return "";
+ if(text.startsWith("o ")||text.startsWith("a "))text.remove(0,2);
+ if(text=="calculadora")return "calculator";
+ if(text=="bloco de notas")return "notepad";
+ if(text=="explorador"||text=="explorador de arquivos")return "explorer";
+ if(text=="navegador")return "browser";
+ if(text=="github")return "github";
+ if(text=="youtube")return "youtube";
+ return "";
+}
+String actionLabel(const String& target){
+ if(target=="calculator")return "a calculadora";if(target=="notepad")return "o Bloco de notas";if(target=="explorer")return "o explorador de arquivos";if(target=="github")return "o GitHub";if(target=="youtube")return "o YouTube";return "o navegador";
+}
+void chat(const String& prompt);
+String boundedUtf8(const String& text,unsigned limit){
+ if(text.length()<=limit)return text;
+ while(limit&&((uint8_t)text[limit]&0xc0)==0x80)limit--;
+ return text.substring(0,limit);
+}
+void dispatchInput(const String& text){
+ String action=classifyAction(text);if(!action.length()){chat(text);return;}
+ if(pcPending.length()){emit("error","Aguarde a acao atual no PC.");return;}
+ if(!pcSession.length()||!pcActions){answer="";notice="Abra o aplicativo Tera no PC e ative os comandos.";render();emit("error",notice);return;}
+ pcPending=action;pcDeadline=millis()+5000;pcActionId++;answer="";notice="Solicitando abertura no PC...";render();emit("busy",notice);
+ StaticJsonDocument<256> doc;doc["event"]="pc_action";doc["session"]=pcSession;doc["id"]=pcActionId;doc["target"]=action;serializeJson(doc,Serial);Serial.println();
 }
 void chat(const String& prompt){
+ if(portal.active()){emit("error","Feche a configuracao pelo celular antes de consultar a IA.");return;}
  if(!settings.apiKey.length()){emit("error","Configure sua chave primeiro.");return;}
  if(WiFi.status()!=WL_CONNECTED){emit("error",wifiDiagnosis());return;}
  if(time(nullptr)<1700000000){emit("error","Aguarde a sincronizacao do relogio para HTTPS.");return;}
@@ -76,10 +127,11 @@ void chat(const String& prompt){
  if(!http.begin(client,settings.provider=="groq"?"https://api.groq.com/openai/v1/chat/completions":"https://openrouter.ai/api/v1/chat/completions")){emit("error","Falha ao iniciar HTTPS.");return;}
  http.addHeader("Authorization","Bearer "+settings.apiKey);http.addHeader("Content-Type","application/json");
  const bool groq=settings.provider=="groq";
- DynamicJsonDocument request(3072);request["model"]=groq?"openai/gpt-oss-20b":"google/gemma-4-26b-a4b-it:free";request["max_tokens"]=groq?1024:320;
+ DynamicJsonDocument request(6144);request["model"]=groq?"openai/gpt-oss-20b":"google/gemma-4-26b-a4b-it:free";request["max_tokens"]=groq?1024:320;
  if(groq){request["reasoning_effort"]="low";request["include_reasoning"]=false;}
  JsonArray messages=request.createNestedArray("messages");
- JsonObject system=messages.createNestedObject();system["role"]="system";system["content"]="Voce e Tera. Responda em portugues de forma breve e clara. Nao invente fatos.";
+ JsonObject system=messages.createNestedObject();system["role"]="system";system["content"]="Voce e Tera, um assistente de chat. Responda em portugues de forma breve e clara. As mensagens podem ser transcricoes de voz ja realizadas; responda ao texto recebido. Nao invente fatos ou afirme ter ouvido audio ou executado acoes. Abrir programas/sites e feito fora do chat por comandos definidos; voce nao controla o computador.";
+ if(historyUser.length()){JsonObject oldUser=messages.createNestedObject();oldUser["role"]="user";oldUser["content"]=historyUser;JsonObject oldAnswer=messages.createNestedObject();oldAnswer["role"]="assistant";oldAnswer["content"]=historyAnswer;}
  JsonObject user=messages.createNestedObject();user["role"]="user";user["content"]=prompt;
  String body;serializeJson(request,body);int code=http.POST(body);
  if(code!=200){char tlsError[160]={0};int tlsCode=client.lastError(tlsError,sizeof(tlsError));http.end();notice="Falha na IA. Veja USB.";render();emit("error",code==401?"Chave invalida para o provedor selecionado (401).":code==429?"Provedor recusou por limite ou capacidade (429). Nao significa necessariamente que voce gastou sua cota.":String("Falha HTTPS/API: ")+String(code)+"; TLS "+String(tlsCode)+" "+tlsError);return;}
@@ -88,10 +140,11 @@ void chat(const String& prompt){
  auto error=deserializeJson(result,http.getStream(),DeserializationOption::Filter(filter));
  String received=result["choices"][0]["message"]["content"].as<String>();http.end();
  if(error||!received.length()||received=="null"){notice="Resposta indisponivel";render();emit("error","Resposta vazia ou maior que o limite local.");return;}
- answer=received;render();emit("reply",answer);
+ answer=received;historyUser=boundedUtf8(prompt,512);historyAnswer=boundedUtf8(received,1024);render();emit("reply",answer);
 }
 void voiceError(const String& text){answer="";page=0;notice=text;render();emit("error",text);}
 bool voiceReady(){
+ if(portal.active()){voiceError("Feche a configuracao: segure GPIO0 por 2 segundos.");return false;}
  if(settings.provider!="groq"||!settings.apiKey.startsWith("gsk_")){voiceError("Voz requer chave Groq. Configure pelo USB.");return false;}
  if(WiFi.status()!=WL_CONNECTED){voiceError(wifiDiagnosis());return false;}
  if(time(nullptr)<1700000000){voiceError("Aguarde o relogio HTTPS; tente novamente.");return false;}
@@ -122,7 +175,7 @@ void transcribe(VoiceAudio& recording){
   if(!speech||!text.length()||text=="null"){voiceError("Fala nao identificada. Tente novamente.");return;}
  }
  if(text.length()>1024){voiceError("Fala longa demais. Use uma frase curta.");return;}
- emit("transcript",text);notice="Ouvi: "+text;render();delay(1200);chat(text);
+ emit("transcript",text);notice="Ouvi: "+text;render();dispatchInput(text);
 }
 void recordVoice(bool timed=false){
  if(!voiceReady())return;
@@ -158,6 +211,20 @@ void calibrateNoise(){
 void command(const String& line){
  DynamicJsonDocument doc(4096);if(deserializeJson(doc,line)){emit("error","JSON invalido.");return;}
  String op=doc["op"]|"";if(op=="status"){status();return;}
+ if(op=="portal"){if(doc["enabled"]|true)showPortal();else{portal.stop();answer="";notice="Configuracao fechada. Segure GPIO35 para falar.";render();emit("network",notice);}return;}
+ if(op=="portal_test"){if(!portal.active())showPortal();if(!portal.startSelfTest())emit("error","Teste do portal indisponivel.");return;}
+ if(op=="clear_history"){historyUser="";historyAnswer="";answer="";notice="Conversa limpa.";render();emit("network",notice);return;}
+ if(op=="bridge_hello"||op=="bridge_ping"){
+  String session=doc["session"]|"";bool valid=session.length()==32;for(unsigned i=0;i<session.length();i++)valid=valid&&isxdigit((unsigned char)session[i]);
+  if(!valid||(op=="bridge_ping"&&session!=pcSession)){emit("error","Sessao do PC invalida.");return;}
+  if(op=="bridge_hello"){pcSession=session;pcPending="";}
+  pcLastSeen=millis();if(doc["actions"].is<bool>())pcActions=doc["actions"].as<bool>();if(doc["speech"].is<bool>())pcSpeech=doc["speech"].as<bool>();
+  if(op=="bridge_hello")emit("bridge_ready");return;
+ }
+ if(op=="pc_result"){
+  if(!pcPending.length()||doc["session"]!=pcSession||!doc["id"].is<uint32_t>()||doc["id"].as<uint32_t>()!=pcActionId||!doc["ok"].is<bool>()){emit("error","Resultado do PC invalido.");return;}
+  answer=doc["ok"].as<bool>()?"Solicitei ao PC que abrisse "+actionLabel(pcPending)+".":"Nao foi possivel abrir "+actionLabel(pcPending)+" no PC.";pcPending="";page=0;render();emit("reply",answer);return;
+ }
  if(op=="voice_test"){recordVoice(true);return;}
  if(op=="calibrate_noise"){calibrateNoise();return;}
  if(op=="voice_fixture"){
@@ -210,28 +277,20 @@ void command(const String& line){
   emit("network",count<0?"Nao foi possivel procurar redes. Tente novamente.":found?"A rede configurada foi encontrada em 2.4 GHz. Confira senha/seguranca se nao conectar.":"A rede configurada nao apareceu na busca 2.4 GHz. Confira o nome exato e aproxime a placa do roteador.");connectWifi();return;
  }
  if(op=="configure"){
-  if(!doc["ssid"].is<String>()||!doc["password"].is<String>()||!doc["key"].is<String>()){emit("error","Configuracao incompleta.");return;}
-  String ssid=doc["ssid"],pass=doc["password"],key=doc["key"];
-  String provider=doc["provider"]|"openrouter";
-  if(provider!="groq"&&provider!="openrouter"){emit("error","Provedor nao permitido.");return;}
-  for(unsigned i=0;i<key.length();i++){char c=key[i];if(!isalnum(static_cast<unsigned char>(c))&&c!='-'&&c!='_'){emit("error","Formato da chave invalido.");return;}}
-  if(ssid.length()<1||ssid.length()>32||pass.length()>63||(pass.length()>0&&pass.length()<8)||key.length()<20||key.length()>256||!key.startsWith(provider=="groq"?"gsk_":"sk-or-")){emit("error","Confira SSID, senha WiFi e chave do provedor selecionado.");return;}
-  if(doc.containsKey("model")&&doc["model"]!="openrouter/free"){emit("error","Somente openrouter/free permitido nesta etapa.");return;}
-  Settings next;next.wifiSsid=ssid;next.wifiPassword=pass;next.apiKey=key;next.provider=provider;
-  if(!next.save()){emit("error","Falha ao salvar na placa.");return;}
-  settings=next;WiFi.disconnect();connectWifi();render();emit("configured","Configuracao salva; conectando WiFi.");return;
+  String error;if(!applyConfiguration(doc.as<JsonObjectConst>(),false,error)){emit("error",error);return;}
+  emit("configured","Configuracao salva; conectando WiFi.");return;
  }
  if(op=="chat"){
   if(!doc["text"].is<String>()){emit("error","Texto ausente.");return;}
-  String text=doc["text"];text.trim();if(text.length()<1||text.length()>1024){emit("error","Envie de 1 a 1024 bytes de texto.");return;}chat(text);return;
+  String text=doc["text"];text.trim();if(text.length()<1||text.length()>1024){emit("error","Envie de 1 a 1024 bytes de texto.");return;}dispatchInput(text);return;
  }
  emit("error","Comando desconhecido.");
 }
 void setup(){
- Serial.begin(115200);Serial.setDebugOutput(false);pinMode(Board::menuButton,INPUT_PULLUP);pinMode(Board::talkButton,INPUT);pinMode(Board::microphone,INPUT);analogReadResolution(12);analogSetPinAttenuation(Board::microphone,ADC_11db);
+ Serial.setRxBufferSize(4096);Serial.begin(115200);Serial.setDebugOutput(false);pinMode(Board::menuButton,INPUT_PULLUP);pinMode(Board::talkButton,INPUT);pinMode(Board::microphone,INPUT);analogReadResolution(12);analogSetPinAttenuation(Board::microphone,ADC_11db);
  WiFi.onEvent([](WiFiEvent_t event,WiFiEventInfo_t info){if(event==ARDUINO_EVENT_WIFI_STA_DISCONNECTED)disconnectReason=info.wifi_sta_disconnected.reason;});
  settings.load();screen.init();screen.setRotation(1);pinMode(Board::displayBacklight,OUTPUT);digitalWrite(Board::displayBacklight,HIGH);
- input.reserve(3072);connectWifi();render();status();
+ input.reserve(3072);connectWifi();if(!settings.wifiSsid.length()){portalAttempted=true;showPortal();}render();status();
 }
 void loop(){
  while(Serial.available()){
@@ -239,9 +298,15 @@ void loop(){
   else if(c!='\r'&&!dropping){if(input.length()>=3072){dropping=true;input="";}else input+=c;}
  }
  bool pressed=digitalRead(Board::menuButton)==LOW;
- if(pressed!=lastButton&&millis()-lastPress>40){lastPress=millis();lastButton=pressed;if(pressed){page++;render();}}
+ if(pressed!=lastButton&&millis()-lastPress>40){lastPress=millis();lastButton=pressed;if(pressed){menuStarted=millis();menuLong=false;}else if(!menuLong){page++;render();}}
+ if(pressed&&!menuLong&&millis()-menuStarted>=1800){menuLong=true;if(portal.active()){portal.stop();answer="";notice="Configuracao fechada.";render();}else showPortal();}
  if(digitalRead(Board::talkButton)==HIGH)talkArmed=true;
  else if(talkArmed){delay(25);if(digitalRead(Board::talkButton)==LOW){talkArmed=false;recordVoice();}}
- static bool connected=false;bool now=WiFi.status()==WL_CONNECTED;if(now!=connected){connected=now;if(now&&!answer.length())notice="WiFi conectado. Segure GPIO35 para falar (Groq).";render();status();}delay(5);
- if(!now&&settings.wifiSsid.length()&&!wifiReported&&millis()-wifiStarted>=20000){wifiReported=true;notice=wifiDiagnosis();render();status();}
+ bool hadPortal=portal.active();portal.poll();if(hadPortal&&!portal.active()){answer="";notice="Configuracao encerrada apos 10 minutos.";render();}
+ String portalReport=portal.takeTestResult();if(portalReport.length())Serial.println(portalReport);
+ if(reconnectAt&&(int32_t)(millis()-reconnectAt)>=0){reconnectAt=0;portal.stop();WiFi.disconnect(false,false);connectWifi();render();}
+ if(pcPending.length()&&(int32_t)(millis()-pcDeadline)>=0){pcPending="";voiceError("O aplicativo do PC nao respondeu. Abra Tera no computador.");}
+ static bool connected=false;bool now=WiFi.status()==WL_CONNECTED;if(now!=connected){connected=now;if(now&&!answer.length()&&!portal.active())notice="WiFi conectado. Segure GPIO35 para falar (Groq).";render();status();}delay(5);
+ if(!now&&!portal.active()&&settings.wifiSsid.length()&&!wifiReported&&millis()-wifiStarted>=20000){wifiReported=true;notice=wifiDiagnosis();render();status();}
+ if(!now&&!portalAttempted&&millis()-wifiStarted>=30000){portalAttempted=true;showPortal();}
 }
