@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-09",
+  "mode": "voice_test",
+  "target": "physical original TTGO T-Display",
+  "events": [
+    {
+      "event": "status",
+      "version": "0.4.0",
+      "networkMessage": "Conectando WiFi; aguarde ate 20 segundos.",
+      "disconnectReason": 0,
+      "configured": true,
+      "wifi": false,
+      "freeHeap": 244240,
+      "microphone": true,
+      "voiceReady": false,
+      "noiseRms": 4.6,
+      "keyboard": false,
+      "speaker": false,
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b"
+    },
+    {
+      "event": "status",
+      "version": "0.4.0",
+      "networkMessage": "WiFi conectado.",
+      "disconnectReason": 0,
+      "configured": true,
+      "wifi": true,
+      "freeHeap": 247812,
+      "microphone": true,
+      "voiceReady": false,
+      "noiseRms": 4.6,
+      "keyboard": false,
+      "speaker": false,
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b"
+    },
+    {
+      "event": "status",
+      "version": "0.4.0",
+      "networkMessage": "WiFi conectado.",
+      "disconnectReason": 0,
+      "configured": true,
+      "wifi": true,
+      "freeHeap": 243788,
+      "microphone": true,
+      "voiceReady": true,
+      "noiseRms": 4.6,
+      "keyboard": false,
+      "speaker": false,
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b"
+    },
+    {
+      "event": "countdown",
+      "message": "Fale em 3 segundos, durante 10 segundos."
+    },
+    {
+      "event": "recording"
+    },
+    {
+      "event": "audio_metrics",
+      "samples": 80000,
+      "elapsedUs": 9999965,
+      "rms": 9.051075251,
+      "noiseRms": 4.6,
+      "clipped": 0,
+      "late": 291,
+      "freeHeap": 83536
+    },
+    {
+      "event": "busy",
+      "message": "Transcrevendo audio na Groq."
+    },
+    {
+      "event": "error",
+      "message": "Falha na transcricao HTTP -1"
+    }
+  ]
+}

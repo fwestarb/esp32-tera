@@ -1,0 +1,124 @@
+{
+  "date": "2026-10-09",
+  "mode": "prerecorded audio replayed through physical TTGO; NOT live/button test",
+  "source": "microfone-2026-10-09-10seg-capacitor-teste2.wav",
+  "sourceSha256": "2af63863a4e18b5bf47bf497f30bef47d9338342c9f5153fa809a7a81ee1512b",
+  "samples": 80000,
+  "events": [
+    {
+      "event": "status",
+      "version": "0.4.0",
+      "networkMessage": "WiFi conectado.",
+      "disconnectReason": 0,
+      "configured": true,
+      "wifi": true,
+      "freeHeap": 235708,
+      "microphone": true,
+      "voiceReady": false,
+      "noiseRms": 4.6,
+      "keyboard": false,
+      "speaker": false,
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b",
+      "stackWatermark": 12780
+    },
+    {
+      "event": "status",
+      "version": "0.4.0",
+      "networkMessage": "WiFi conectado.",
+      "disconnectReason": 0,
+      "configured": true,
+      "wifi": true,
+      "freeHeap": 235728,
+      "microphone": true,
+      "voiceReady": false,
+      "noiseRms": 4.6,
+      "keyboard": false,
+      "speaker": false,
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b",
+      "stackWatermark": 12604
+    },
+    {
+      "event": "status",
+      "version": "0.4.0",
+      "networkMessage": "WiFi conectado.",
+      "disconnectReason": 0,
+      "configured": true,
+      "wifi": true,
+      "freeHeap": 235708,
+      "microphone": true,
+      "voiceReady": false,
+      "noiseRms": 4.6,
+      "keyboard": false,
+      "speaker": false,
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b",
+      "stackWatermark": 12604
+    },
+    {
+      "event": "status",
+      "version": "0.4.0",
+      "networkMessage": "WiFi conectado.",
+      "disconnectReason": 0,
+      "configured": true,
+      "wifi": true,
+      "freeHeap": 235728,
+      "microphone": true,
+      "voiceReady": false,
+      "noiseRms": 4.6,
+      "keyboard": false,
+      "speaker": false,
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b",
+      "stackWatermark": 12604
+    },
+    {
+      "event": "status",
+      "version": "0.4.0",
+      "networkMessage": "WiFi conectado.",
+      "disconnectReason": 0,
+      "configured": true,
+      "wifi": true,
+      "freeHeap": 235548,
+      "microphone": true,
+      "voiceReady": true,
+      "noiseRms": 4.6,
+      "keyboard": false,
+      "speaker": false,
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b",
+      "stackWatermark": 12604
+    },
+    {
+      "event": "network",
+      "message": "Teste de autenticacao Groq: HTTP 200"
+    },
+    {
+      "event": "fixture_ready",
+      "message": "Teste com audio previamente gravado, nao captacao ao vivo."
+    },
+    {
+      "event": "busy",
+      "message": "Transcrevendo audio na Groq."
+    },
+    {
+      "event": "audio_upload",
+      "http": 200,
+      "bodyBytesRead": 80524,
+      "expectedBytes": 80524,
+      "freeHeap": 109760
+    },
+    {
+      "event": "transcript",
+      "message": "Este é um áudio de 10 segundos para verificar se consegue entender todas as palavras. 1, 2, 3..."
+    },
+    {
+      "event": "busy"
+    },
+    {
+      "event": "reply",
+      "message": "Sim, consegui entender todas as palavras."
+    }
+  ]
+}

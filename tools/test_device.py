@@ -4,8 +4,10 @@ from pathlib import Path
 
 def run(port='COM3'):
     results=[]
-    with serial.Serial(port,115200,timeout=0.3) as conn:
-        conn.dtr=False; conn.rts=False; time.sleep(2);conn.reset_input_buffer()
+    conn=serial.Serial(port=None,baudrate=115200,timeout=0.3)
+    conn.dtr=False;conn.rts=False;conn.port=port;conn.open()
+    with conn:
+        time.sleep(2);conn.reset_input_buffer()
         def exchange(payload):
             conn.write((payload+'\n').encode());deadline=time.monotonic()+5
             while time.monotonic()<deadline:
@@ -15,7 +17,7 @@ def run(port='COM3'):
                 except (ValueError,UnicodeDecodeError):pass
             raise AssertionError('No firmware response')
         baseline=exchange('{"op":"status"}')
-        assert baseline['version'] in ('0.2.0','0.2.1','0.2.2','0.3.0')
+        assert baseline['version'] in ('0.2.0','0.2.1','0.2.2','0.3.0','0.4.0')
         results.append({'test':'firmware boots and status responds','passed':True,'status':baseline})
         cases=[('invalid JSON','{'),('unknown command','{"op":"unknown"}'),('missing configuration','{"op":"configure"}'),('empty message','{"op":"chat","text":" "}'),('overlong message',json.dumps({'op':'chat','text':'a'*1025})),('oversize serial command','a'*3073),('paid model rejected',json.dumps({'op':'configure','ssid':'test','password':'12345678','key':'sk-or-'+'a'*30,'model':'paid/model'})),('header injection rejected',json.dumps({'op':'configure','ssid':'test','password':'12345678','key':'sk-or-'+'a'*30+'\r\n'}))]
         for name,payload in cases:
@@ -27,7 +29,7 @@ def run(port='COM3'):
         if not baseline['configured']:
             event=exchange('{"op":"chat","text":"Ola"}');assert event['event']=='error'
             results.append({'test':'no fake AI reply without configuration','passed':True,'response':event})
-    report={'date':'2026-10-06','target':'physical TTGO T-Display original','results':results,'not_verified':['WiFi association with user credentials','real OpenRouter response','physical display appearance and buttons','microphone, keyboard, speaker']}
+    report={'date':'2026-10-09','target':'physical TTGO T-Display original','results':results,'scope':'USB protocol validation only; no authenticated AI requests or microphone capture in this suite'}
     Path('docs/TESTES-USB-'+baseline['version']+'.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps(report,ensure_ascii=False,indent=2))
 if __name__=='__main__':run()

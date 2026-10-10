@@ -7,5 +7,5 @@ constexpr int menuButton = 0; // Boot strap: do not hold during reset.
 constexpr int keyboardSda = 21;
 constexpr int keyboardScl = 22;
 constexpr unsigned char keyboardAddress = 0x5F;
-// Audio pins are intentionally unassigned until the modules are identified.
+constexpr int microphone = 32; // Analog amplifier OUT, ADC1 (works with WiFi).
 }

@@ -16,7 +16,7 @@ busy = False
 frame = ttk.Frame(root, padding=16)
 frame.pack(fill='both', expand=True)
 ttk.Label(frame, text='ESP32 TERA', font=('Segoe UI', 18, 'bold')).pack(anchor='w')
-ttk.Label(frame, text='Wi-Fi 2,4 GHz • Groq Free ou OpenRouter • áudio ainda indisponível').pack(anchor='w')
+ttk.Label(frame, text='Wi-Fi 2,4 GHz • voz com Groq • segure GPIO35 para falar e solte para enviar').pack(anchor='w')
 row = ttk.Frame(frame); row.pack(fill='x', pady=10)
 port = ttk.Combobox(row, values=[p.device for p in list_ports.comports()], width=12)
 port.pack(side='left')
@@ -48,8 +48,8 @@ def connect():
     global connection, busy
     if connection: connection.close()
     try:
-        connection = serial.Serial(port.get(),115200,timeout=1)
-        connection.dtr=False; connection.rts=False
+        connection = serial.Serial(port=None,baudrate=115200,timeout=1)
+        connection.dtr=False; connection.rts=False;connection.port=port.get();connection.open()
         busy=False
         threading.Thread(target=read_loop,args=(connection,),daemon=True).start()
         root.after(2000,lambda: send({'op':'status'}))
@@ -59,6 +59,7 @@ def connect():
 ttk.Button(row,text='Conectar',command=connect).pack(side='left',padx=10)
 ttk.Button(row,text='Verificar estado',command=lambda:send({'op':'status'})).pack(side='left')
 ttk.Button(row,text='Diagnosticar Wi-Fi',command=lambda:send({'op':'scan'})).pack(side='left',padx=6)
+ttk.Button(row,text='Calibrar ruído',command=lambda:send({'op':'calibrate_noise'})).pack(side='left')
 fields={}
 ttk.Label(frame,text='Provedor de IA (use uma conta Groq no plano Free)').pack(anchor='w')
 provider=ttk.Combobox(frame,values=['groq','openrouter'],state='readonly')
@@ -97,7 +98,9 @@ def poll():
         if kind=='status':
             chat_button.configure(state='normal' if event.get('wifi') and event.get('configured') else 'disabled')
             append(event.get('networkMessage',f"Wi-Fi {'conectado' if event.get('wifi') else 'pendente'}")+f" Firmware {event.get('version')}.")
-        elif kind=='busy': busy=True;append('Consultando IA…')
+        elif kind in ('busy','recording','countdown'):
+            busy=True;append(event.get('message','Gravando…' if kind=='recording' else 'Consultando IA…'))
+        elif kind=='transcript': append('Você disse: '+event.get('message',''))
         elif kind in ('reply','error','configured','network'):
             busy=False;append(('Tera: ' if kind=='reply' else '')+event.get('message',''))
             if kind=='configured':

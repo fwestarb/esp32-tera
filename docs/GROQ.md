@@ -20,3 +20,7 @@ Fontes oficiais:
 ## English
 
 Select Groq in the USB tool and save your Wi-Fi credentials and personal Groq key. Keep the account on Free; the firmware does not verify billing status. Model: openai/gpt-oss-20b. Physical-board TLS and protocol checks passed; authenticated chat awaits a user-provided key.
+
+## Atualizacao de voz 09/10/2026
+
+Firmware 0.4.0 acrescenta Whisper large v3 turbo para transcrever portugues. Autenticacao, transcricao e resposta GPT OSS passaram na TTGO usando uma gravacao anterior conhecida; veja RESULTADOS-VOZ-0.4.0.md. O plano Free tem cotas separadas de texto e audio. Cada pergunta por voz usa dois pedidos.
