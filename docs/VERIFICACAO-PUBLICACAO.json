@@ -1,0 +1,74 @@
+{
+  "date": "2026-10-11",
+  "repository": "https://github.com/fwestarb/esp32-tera",
+  "release": "https://github.com/fwestarb/esp32-tera/releases/tag/v1.0.0-alpha.1",
+  "pagesBuild": "built",
+  "website": {
+    "url": "https://fwestarb.github.io/esp32-tera/",
+    "http": 200,
+    "layouts": [
+      {
+        "language": "pt",
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "language": "pt",
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "language": "pt",
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "language": "pt",
+        "width": 1440,
+        "overflow": false
+      },
+      {
+        "language": "en",
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "language": "en",
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "language": "en",
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "language": "en",
+        "width": 1440,
+        "overflow": false
+      }
+    ],
+    "translation": "complete",
+    "languagePersistence": true,
+    "clipboard": true,
+    "faq": true,
+    "images": true,
+    "reducedMotion": true,
+    "javascriptErrors": []
+  },
+  "downloads": {
+    "esp32-tera-1.0.0-alpha.1.zip": {
+      "http": 200,
+      "bytes": 967227,
+      "sha256": "fd383665bb255cd4eee7707bd34ca48568b9285a645a953c8445fdf0c4e4c2d6",
+      "matchesLocal": true
+    },
+    "SHA256SUMS.txt": {
+      "http": 200,
+      "bytes": 96,
+      "sha256": "49f5c46a3442571a5e681b29faef6eee36e73097d0f77363bdbec12e550e31e5",
+      "matchesLocal": true
+    }
+  },
+  "scope": "Public site/browser and published asset verification; no new firmware or microphone tests performed for this publication."
+}

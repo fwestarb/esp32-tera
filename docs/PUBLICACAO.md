@@ -18,6 +18,10 @@ Para repetir: sirva `docs` em `http://127.0.0.1:8808` e execute `node tools/test
 
 O ZIP contém firmware, fontes e scripts explicitamente selecionados. Modelos de voz, ambientes Python, gravações, credenciais e dumps de NVS não são distribuídos. SHA-256 acompanha o pacote e o manifesto dos binários. Leia [instalação](INSTALACAO-ALPHA.md) e [resultados do sistema](RESULTADOS-ALPHA-1.0.md) para requisitos e limites.
 
+### Verificação após publicar
+
+O endereço público respondeu HTTP 200 e passou pelos mesmos testes do site local. O ZIP e o arquivo SHA-256 foram baixados do GitHub e comparados integralmente com os arquivos locais. GitHub Pages informou build concluído. [Evidência da publicação](VERIFICACAO-PUBLICACAO.json). Não foram repetidos testes do microfone ou alterado o firmware nesta publicação.
+
 ### Atualizar depois
 
 Mudanças em `docs` publicadas na branch `main` atualizam o site. Para uma nova versão, atualize a versão do firmware, valide o sistema, gere um novo pacote com `tools/package_alpha.py` e publique outra tag/release; ajuste os links de download em `docs/index.html`. Mantenha as versões anteriores disponíveis.
@@ -29,3 +33,5 @@ The static site is published from `main` → `/docs` on GitHub Pages. It uses HT
 Playwright checks in headless Edge cover both languages at 320, 390, 768 and 1440 px, overflow, translations, language persistence, clipboard, FAQ expansion, image loading and reduced motion, with no JavaScript errors. Screenshots were visually reviewed. See the linked JSON report and `tools/test_site.cjs` to repeat the checks.
 
 The release includes an explicit selection of source files and firmware, with SHA-256 integrity files. Voice models, environments, recordings, secrets and NVS dumps are excluded. Installation requires Python 3.12 on Windows and a personal provider key. Free APIs have quotas. Firmware/app validation and untested hardware cases are documented separately in the Alpha results.
+
+The deployed website also passed the browser checks with HTTP 200. Release assets were downloaded from GitHub and matched the local files byte for byte. See [public deployment verification](VERIFICACAO-PUBLICACAO.json). No firmware changes or new microphone tests were performed during website publication.
