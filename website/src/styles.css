@@ -11,3 +11,5 @@
 @media(max-width:620px){.header nav{font-size:13px;gap:0}.header nav a{padding:8px 7px}.hero h1{font-size:clamp(29px,8.5vw,42px);letter-spacing:0}.hero-tree{height:370px}.carousel-wrap{height:370px}h2{font-size:23px}.lead{font-size:17px}.brand{font-size:22px}}
 
 .carousel-wrap .flex-carousel__caption{top:auto;bottom:14px}.hero-rays{z-index:3}
+
+footer{flex-wrap:wrap}.project-links{display:flex;gap:20px;flex-wrap:wrap;width:100%;border-top:1px solid var(--line);padding-top:14px}
