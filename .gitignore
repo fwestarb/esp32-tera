@@ -18,4 +18,6 @@ models/piper/
 .venv-pc/
 models/kokoro/
 dist/
+node_modules/
+.env.local
 !data/cert/x509_crt_bundle.bin

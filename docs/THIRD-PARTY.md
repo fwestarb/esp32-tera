@@ -16,3 +16,18 @@ ESP32 Tera source and generated firmware are distinct from third-party dependenc
 | PySerial | https://github.com/pyserial/pyserial | BSD-3-Clause |
 
 Cloud services have their own terms, privacy policies and quotas. API credentials are personal and are not included in source or downloads.
+
+## Website
+
+The website uses six React Bits components supplied in the author's attachments. They retain the [React Bits MIT + Commons Clause license](../website/src/components/LICENSE-REACT-BITS.md), separately from the project's own MIT source. Adaptations cover the Tera palette, PNG alpha, page scrolling and accessible labels. Components are integrated into this website, not distributed as a standalone component library.
+
+| Component | Source | License |
+|---|---|---|
+| React / React DOM | https://github.com/facebook/react | MIT |
+| React Bits components | https://github.com/DavidHDev/react-bits | MIT + Commons Clause, notice preserved |
+| OGL | https://github.com/oframe/ogl | Unlicense |
+| GSAP | https://gsap.com/standard-license/ | Standard no-charge license |
+| Hugeicons React / free icons | https://github.com/hugeicons/hugeicons-react | MIT |
+| Vite | https://github.com/vitejs/vite | MIT; build dependency |
+
+Dappled Light is **not installed**; it needs an unavailable React Bits Pro license. Registry configuration references an environment variable only. Generated tree artwork is an illustration; the prototype photo was provided by the author. Fonts DM Sans and Space Grotesk are served by Google Fonts with local sans-serif fallbacks.

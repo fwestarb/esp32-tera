@@ -63,4 +63,4 @@ The release ZIP includes firmware with integrity hashes, source and Windows setu
 
 [Website and setup walkthrough](https://fwestarb.github.io/esp32-tera/) · [Download Alpha 1.0](https://github.com/fwestarb/esp32-tera/releases/tag/v1.0.0-alpha.1).
 
-Website: static HTML, CSS and JavaScript hosted on GitHub Pages, with Portuguese/English selection, responsive layout and reduced-motion support. See [publication and checks](docs/PUBLICACAO.md).
+Website: React + Vite built to static GitHub Pages files, with Portuguese/English selection, six React Bits components, responsive layout, reduced-motion support and a verified ZIP download. Build instructions are in [website/README.md](website/README.md). See [publication and checks](docs/PUBLICACAO.md).
