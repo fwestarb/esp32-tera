@@ -14,6 +14,9 @@ const {createHash}=require('node:crypto');
   assert.equal((await page.goto(url)).status(),200);
   await page.waitForFunction(()=>document.querySelector('.effect-surface')?.dataset.ready==='true');
   async function language(value){await page.getByRole('combobox',{name:'Idioma / Language',exact:true}).click();await page.getByRole('option',{name:value==='en'?/EN English/:/PT Português/}).click();await page.waitForFunction(lang=>document.documentElement.lang===lang,value==='en'?'en':'pt-BR');}
+  await page.evaluate(()=>Promise.all([document.fonts.load('400 32px Oi'),document.fonts.load('400 16px \"STIX Two Text\"')]));
+  assert.match(await page.locator('h1').evaluate(e=>getComputedStyle(e).fontFamily),/Oi/);
+  await page.locator('.tree-control').click();assert.equal(await page.locator('.tree-control').getAttribute('aria-pressed'),'true');await page.locator('.tree-control').click();
   await language('en');assert.match(await page.locator('h1').innerText(),/AI on your ESP32/);
   await page.reload();assert.equal(await page.locator('html').getAttribute('lang'),'en');
   await page.getByRole('combobox',{name:'Idioma / Language',exact:true}).click();await page.keyboard.press('Escape');assert.equal(await page.getByRole('combobox',{name:'Idioma / Language',exact:true}).getAttribute('aria-expanded'),'false');
@@ -21,7 +24,7 @@ const {createHash}=require('node:crypto');
   for(const lang of ['pt','en']){await language(lang);for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,`${lang} ${width} overflow`);layouts.push({language:lang,width,overflow:false});}}
   await language('pt');await page.locator('[data-copy="instalar.cmd"]').click();assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),'instalar.cmd');
   await page.locator('summary').first().click();assert.equal(await page.locator('details').first().getAttribute('open'),'');
-  await page.locator('.flex-carousel').scrollIntoViewIfNeeded();await page.locator('.flex-carousel').focus();await page.keyboard.press('ArrowRight');await page.waitForFunction(()=>document.querySelector('.flex-carousel__live')?.textContent.includes('Configuração pelo celular'));
+  await page.locator('.flex-carousel').scrollIntoViewIfNeeded();await page.locator('.flex-carousel').focus();await page.keyboard.press('ArrowRight');await page.waitForFunction(()=>document.querySelector('.flex-carousel__live')?.textContent.includes('Protótipo · vista superior'));
   await page.keyboard.press('Enter');await page.keyboard.press('Escape');
   await page.waitForTimeout(600);const box=await page.locator('.flex-carousel').boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);const before=await page.evaluate(()=>scrollY);await page.mouse.wheel(0,250);await page.waitForTimeout(400);assert.ok(await page.evaluate(()=>scrollY)>before);
   await page.locator('#usar').scrollIntoViewIfNeeded();await page.waitForTimeout(700);assert.ok(await page.locator('.usage-rays canvas').count()>0);

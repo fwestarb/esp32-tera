@@ -41,3 +41,10 @@ The deployed website also passed the browser checks with HTTP 200. Release asset
 A revisão com seis componentes, base sólida e textos objetivos também passou nos testes após publicação: [relatório público React](TESTE-SITE-REACT-PUBLICO.json). Inclui download real da cópia da Alpha, SHA-256, cancelamento, rejeição de arquivo corrompido, tratamento de falha de rede, galeria por teclado e fallback sem WebGL. Dappled Light permanece pendente por ausência de licença. O firmware e a release Alpha permanecem os mesmos.
 
 The React Bits revision passed the same checks on the public URL, including a real download and integrity/error handling. See the linked public report. Dappled Light is pending a Pro license. Firmware and the Alpha release are unchanged.
+
+
+## Revisão visual de 11/10/2026
+
+Árvore fornecida pelo autor com HalftoneReveal ao mover o cursor ou tocar; botão de alternância acessível por teclado. Três fotos novas, FlexCarousel com curvatura e dispersão, SideRays mais visível, FoldText, GlideSelect e LatticeLoader durante download real. Fontes Oi e STIX Two Text, navegação em pílulas e fundo sólido com pontos SVG. Dappled Light Pro permanece pendente de licença.
+
+Verificação automática: PT/EN em 320, 390, 768 e 1440 px, sem rolagem horizontal; carregamento das fontes, mudança real dos pixels da árvore ao mover o cursor, galeria por teclado, download com SHA-256, cancelamento e falhas, redução de movimento e alternativa sem WebGL. Relatórios: TESTE-SITE-REACT.json e TESTE-EFEITOS-VISUAIS.json.

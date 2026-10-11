@@ -1,3 +1,11 @@
+# Árvore atual / Current tree
+
+O site usa `assets/tera-tree-mark.png`, imagem fornecida pelo autor em 11/10/2026, preservada sem alteração. HalftoneReveal cria a visualização interativa em pontos no navegador. As três fotos `prototype-detail.png`, `prototype-top.png` e `prototype-powered.png` também foram fornecidas pelo autor.
+
+The current tree mark and prototype photographs were supplied by the author. The shader treatment is rendered in the browser; the original files are unchanged.
+
+## Histórico da ilustração anterior
+
 # Árvore Tera / Tera tree
 
 Arquivo: `assets/tera-tree.png`. Ilustração criada com a ferramenta integrada imagegen, sem API externa configurada pelo projeto. Não representa um recurso do firmware nem uma fotografia do dispositivo.

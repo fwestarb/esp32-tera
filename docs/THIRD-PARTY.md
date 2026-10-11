@@ -30,4 +30,4 @@ The website uses six React Bits components supplied in the author's attachments.
 | Hugeicons React / free icons | https://github.com/hugeicons/hugeicons-react | MIT |
 | Vite | https://github.com/vitejs/vite | MIT; build dependency |
 
-Dappled Light is **not installed**; it needs an unavailable React Bits Pro license. Registry configuration references an environment variable only. Generated tree artwork is an illustration; the prototype photo was provided by the author. Fonts DM Sans and Space Grotesk are served by Google Fonts with local sans-serif fallbacks.
+Dappled Light is **not installed**; it needs an unavailable React Bits Pro license. Registry configuration references an environment variable only. Generated tree artwork is an illustration; the prototype photo was provided by the author. Fonts Oi and STIX Two Text are served by Google Fonts with local serif fallbacks. The current tree mark and three prototype photographs were supplied by the author on October 11, 2026.
