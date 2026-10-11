@@ -1,0 +1,273 @@
+{
+  "date": "2026-10-11",
+  "passed": true,
+  "scope": "physical ESP32, authenticated cloud chat, real PC application and audio playback; no new human recording or actual phone",
+  "results": [
+    {
+      "test": "intent",
+      "input": "Abra a calculadora",
+      "target": "calculator",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "pode abrir a calculadora?",
+      "target": "calculator",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "Tera, abre a calculadora, por favor!",
+      "target": "calculator",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "Você poderia abrir o Bloco de notas para mim?",
+      "target": "notepad",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "Por favor abra o explorador de arquivos",
+      "target": "explorer",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "quero que você abra o navegador",
+      "target": "browser",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "consegue abrir o Git Hub?",
+      "target": "github",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "gostaria de abrir o YouTube",
+      "target": "youtube",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "Pode abrir a calcula dora",
+      "target": "calculator",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "Não abra a calculadora",
+      "target": "",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "não, abra a calculadora",
+      "target": "",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "Nunca abra o navegador",
+      "target": "",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "Como abrir a calculadora?",
+      "target": "",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "Se eu pedir, abra a calculadora",
+      "target": "",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "Diga \"abra a calculadora\"",
+      "target": "",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "“abra a calculadora”",
+      "target": "",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "Pode abrir algo?",
+      "target": "clarify",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "Abra a calculadora e o navegador",
+      "target": "clarify",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "abra powershell",
+      "target": "clarify",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "abra calc.exe /c comando",
+      "target": "clarify",
+      "passed": true
+    },
+    {
+      "test": "intent",
+      "input": "Oi Tera",
+      "target": "",
+      "passed": true
+    },
+    {
+      "test": "actual cloud model + context + female PC playback",
+      "model": "openai/gpt-oss-20b",
+      "reply": "Sou Tera, funcionando na placa TTGO T‑Display (ESP32).",
+      "speech": {
+        "event": "speech",
+        "ok": true,
+        "engine": "kokoro",
+        "voice": "Dora",
+        "culture": "pt-BR",
+        "characters": 54,
+        "elapsedMs": 6797,
+        "mode": "playback"
+      },
+      "elapsedSeconds": 13.34,
+      "passed": true
+    },
+    {
+      "test": "actual cloud model + context + female PC playback",
+      "model": "openai/gpt-oss-120b",
+      "reply": "Sou a Tera, executando no TTGO T‑Display ESP32 conectado ao seu PC.",
+      "speech": {
+        "event": "speech",
+        "ok": true,
+        "engine": "kokoro",
+        "voice": "Dora",
+        "culture": "pt-BR",
+        "characters": 67,
+        "elapsedMs": 8078,
+        "mode": "playback"
+      },
+      "elapsedSeconds": 12.24,
+      "passed": true
+    },
+    {
+      "test": "polite command actual Windows calculator and Dora playback",
+      "passed": true,
+      "reply": "O computador confirmou que abriu a calculadora.",
+      "speech": {
+        "event": "speech",
+        "ok": true,
+        "engine": "kokoro",
+        "voice": "Dora",
+        "culture": "pt-BR",
+        "characters": 47,
+        "elapsedMs": 5375,
+        "mode": "playback"
+      }
+    },
+    {
+      "test": "ambiguous command asks clarification",
+      "passed": true
+    },
+    {
+      "test": "actual board HTTP portal, DNS, validation, credential preservation",
+      "passed": true,
+      "report": {
+        "event": "portal_test",
+        "cases": [
+          {
+            "test": "page",
+            "http": 200,
+            "passed": true
+          },
+          {
+            "test": "missing token",
+            "http": 403,
+            "passed": true
+          },
+          {
+            "test": "status",
+            "http": 200,
+            "passed": true
+          },
+          {
+            "test": "invalid JSON",
+            "http": 400,
+            "passed": true
+          },
+          {
+            "test": "invalid configuration",
+            "http": 400,
+            "passed": true
+          },
+          {
+            "test": "oversize configuration",
+            "http": 413,
+            "passed": true
+          },
+          {
+            "test": "unknown page redirect",
+            "http": 302,
+            "passed": true
+          },
+          {
+            "test": "captive DNS",
+            "passed": true
+          },
+          {
+            "test": "save existing configuration",
+            "http": 200,
+            "passed": true
+          }
+        ],
+        "credentialsPreserved": true,
+        "passed": true,
+        "apActive": true
+      }
+    },
+    {
+      "test": "final state",
+      "passed": true,
+      "status": {
+        "event": "status",
+        "version": "1.0.0-alpha.1",
+        "project": "esp32-tera",
+        "bootId": 1117156024,
+        "watchdogSeconds": 120,
+        "networkMessage": "WiFi conectado.",
+        "disconnectReason": 8,
+        "configured": true,
+        "wifi": true,
+        "freeHeap": 218904,
+        "microphone": true,
+        "voiceReady": true,
+        "noiseRms": 4.6,
+        "keyboard": false,
+        "speaker": false,
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "stackWatermark": 7804,
+        "clockReady": true,
+        "portal": false,
+        "portalAddress": "",
+        "pcConnected": true,
+        "pcSpeech": true,
+        "pcActions": true,
+        "history": false
+      }
+    }
+  ]
+}

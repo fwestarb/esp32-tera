@@ -1,6 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $teraProject = Split-Path -Parent $PSScriptRoot
-$teraPython = (Get-Command pythonw.exe -ErrorAction Stop).Source
+$teraPython = Join-Path $teraProject '.venv-pc\Scripts\pythonw.exe'
+if (-not (Test-Path -LiteralPath $teraPython)) { $teraPython = (Get-Command pythonw.exe -ErrorAction Stop).Source }
 $teraStartup = [Environment]::GetFolderPath('Startup')
 $teraShell = New-Object -ComObject WScript.Shell
 $teraShortcut = $teraShell.CreateShortcut((Join-Path $teraStartup 'ESP32 Tera.lnk'))

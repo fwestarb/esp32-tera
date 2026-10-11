@@ -14,4 +14,8 @@ recordings/
 .venv-transcription/
 .venv-tts/
 models/piper/
+.venv-dora/
+.venv-pc/
+models/kokoro/
+dist/
 !data/cert/x509_crt_bundle.bin

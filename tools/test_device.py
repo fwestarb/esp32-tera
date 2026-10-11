@@ -17,8 +17,8 @@ def run(port='COM3'):
                 except (ValueError,UnicodeDecodeError):pass
             raise AssertionError('No firmware response')
         baseline=exchange('{"op":"status"}')
-        baseline.pop('bridgeSession',None)
-        assert baseline['version'] in ('0.5.0','0.5.1')
+        baseline.pop('bridgeSession',None);baseline.pop('ssid',None)
+        assert baseline['version'] in ('0.5.0','0.5.1','1.0.0-alpha.1')
         results.append({'test':'firmware boots and status responds','passed':True,'status':baseline})
         cases=[('invalid JSON','{'),('unknown command','{"op":"unknown"}'),('missing configuration','{"op":"configure"}'),('empty message','{"op":"chat","text":" "}'),('overlong message',json.dumps({'op':'chat','text':'a'*1025})),('oversize serial command','a'*3073),('paid model rejected',json.dumps({'op':'configure','ssid':'test','password':'12345678','key':'sk-or-'+'a'*30,'model':'paid/model'})),('header injection rejected',json.dumps({'op':'configure','ssid':'test','password':'12345678','key':'sk-or-'+'a'*30+'\r\n'}))]
         for name,payload in cases:
@@ -30,7 +30,7 @@ def run(port='COM3'):
         if not baseline['configured']:
             event=exchange('{"op":"chat","text":"Ola"}');assert event['event']=='error'
             results.append({'test':'no fake AI reply without configuration','passed':True,'response':event})
-    report={'date':'2026-10-10','target':'physical TTGO T-Display original','results':results,'scope':'USB protocol validation only; no authenticated AI requests or microphone capture in this suite'}
+    report={'date':'2026-10-11','target':'physical TTGO T-Display original','results':results,'scope':'USB protocol validation only; no authenticated AI requests or microphone capture in this suite'}
     Path('docs/TESTES-USB-'+baseline['version']+'.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps(report,ensure_ascii=False,indent=2))
 if __name__=='__main__':run()

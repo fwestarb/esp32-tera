@@ -17,6 +17,8 @@ from serial.tools import list_ports
 
 ROOT=Path(__file__).resolve().parent
 PIPER_PYTHON=ROOT.parent/'.venv-tts/Scripts/python.exe'
+DORA_PYTHON=ROOT.parent/'.venv-dora/Scripts/python.exe'
+DORA_MODEL=ROOT.parent/'models/kokoro/kokoro-v1.0.onnx'
 PIPER_MODEL=ROOT.parent/'models/piper/pt_BR-faber-medium.onnx'
 TARGETS={'calculator':'a calculadora','notepad':'o Bloco de notas','explorer':'o explorador de arquivos','browser':'o navegador','github':'o GitHub','youtube':'o YouTube'}
 URLS={'browser':'about:blank','github':'https://github.com/fwestarb','youtube':'https://www.youtube.com/'}
@@ -37,7 +39,7 @@ class SpeechWorker:
     def __init__(self,callback=lambda event:None):
         self.callback=callback;self.enabled=True;self.queue=queue.Queue(maxsize=3)
         self.lock=threading.Lock();self.process=None;self.closed=False;self.generation=0
-        self.voice='piper-faber' if PIPER_PYTHON.exists() and PIPER_MODEL.exists() else 'windows-daniel'
+        self.voice='kokoro-dora' if DORA_PYTHON.exists() and DORA_MODEL.exists() else 'piper-faber' if PIPER_PYTHON.exists() and PIPER_MODEL.exists() else 'windows-daniel'
         self.thread=threading.Thread(target=self._run,daemon=True);self.thread.start()
     def say(self,text):
         if self.closed or not self.enabled or not isinstance(text,str) or not text.strip():return
@@ -63,7 +65,9 @@ class SpeechWorker:
                     if self.closed or generation!=self.generation:continue
                     selected=self.voice
                     request={'text':text}
-                    if selected=='piper-faber':
+                    if selected=='kokoro-dora':
+                        command=[str(DORA_PYTHON),str(ROOT/'dora_speech.py')]
+                    elif selected=='piper-faber':
                         command=[str(PIPER_PYTHON),str(ROOT/'piper_speech.py')]
                     else:
                         command=['powershell.exe','-NoProfile','-NonInteractive','-File',str(ROOT/'speech.ps1')]
@@ -119,8 +123,8 @@ class PCBridge:
         kind=event.get('event')
         if kind=='status':
             self.last_status=event.copy()
-            if event.get('project')!='esp32-tera' or event.get('version') not in ('0.5.0','0.5.1'):
-                self.callback({'event':'error','message':'Instale o firmware Tera 0.5.x para usar o assistente do PC.'});return
+            if event.get('project')!='esp32-tera' or event.get('version') not in ('0.5.0','0.5.1','1.0.0-alpha.1'):
+                self.callback({'event':'error','message':'Instale o firmware Tera Alpha 1.0 para usar o assistente do PC.'});return
             boot=event.get('bootId')
             if boot is not None:
                 if self.boot_id is not None and boot!=self.boot_id:

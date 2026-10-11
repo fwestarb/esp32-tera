@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "window": {
+    "width": 820,
+    "height": 850
+  },
+  "checks": [
+    "controls fit window",
+    "secret fields masked",
+    "response area visible",
+    "provider changes compatible models",
+    "status preserves edited selection",
+    "voice selection matches engine"
+  ]
+}

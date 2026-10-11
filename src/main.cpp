@@ -11,6 +11,8 @@
 #include "Settings.h"
 #include "VoiceAudio.h"
 #include "Portal.h"
+#include "Version.h"
+#include "Intent.h"
 // Certificate verification plus the voice/command call chain exceeds 8 KB.
 SET_LOOP_TASK_STACK_SIZE(16384);
 extern const uint8_t caRoots[] asm("_binary_data_cert_openrouter_roots_pem_start");
@@ -68,11 +70,11 @@ void emit(const char* type,const String& message=""){
  DynamicJsonDocument doc(256+message.length());doc["event"]=type;if(message.length())doc["message"]=message;serializeJson(doc,Serial);Serial.println();
 }
 void status(){
- StaticJsonDocument<1536> doc;doc["event"]="status";doc["version"]="0.5.1";doc["project"]="esp32-tera";
+ StaticJsonDocument<1536> doc;doc["event"]="status";doc["version"]=TERA_VERSION;doc["project"]="esp32-tera";
  doc["bootId"]=bootId;doc["bridgeSession"]=pcSession;doc["watchdogSeconds"]=watchdogEnabled?120:0;
  doc["networkMessage"]=wifiDiagnosis();doc["disconnectReason"]=disconnectReason;
  doc["configured"]=settings.wifiSsid.length()>0&&settings.apiKey.length()>0;doc["wifi"]=WiFi.status()==WL_CONNECTED;
- doc["freeHeap"]=ESP.getFreeHeap();doc["microphone"]=true;doc["voiceReady"]=!portal.active()&&settings.provider=="groq"&&settings.apiKey.length()>0&&WiFi.status()==WL_CONNECTED&&time(nullptr)>=1700000000;doc["noiseRms"]=noiseRms;doc["keyboard"]=false;doc["speaker"]=false;doc["provider"]=settings.provider;doc["model"]=settings.provider=="groq"?"openai/gpt-oss-20b":"google/gemma-4-26b-a4b-it:free";
+ doc["freeHeap"]=ESP.getFreeHeap();doc["microphone"]=true;doc["voiceReady"]=!portal.active()&&settings.provider=="groq"&&settings.apiKey.length()>0&&WiFi.status()==WL_CONNECTED&&time(nullptr)>=1700000000;doc["noiseRms"]=noiseRms;doc["keyboard"]=false;doc["speaker"]=false;doc["ssid"]=settings.wifiSsid;doc["provider"]=settings.provider;doc["model"]=settings.model;
  doc["stackWatermark"]=uxTaskGetStackHighWaterMark(nullptr);
  doc["clockReady"]=time(nullptr)>=1700000000;doc["portal"]=portal.active();doc["portalName"]=portal.active()?portal.name():"";doc["portalAddress"]=portal.active()?"192.168.4.1":"";
  doc["pcConnected"]=pcSession.length()>0&&millis()-pcLastSeen<10000;doc["pcSpeech"]=pcSpeech;doc["pcActions"]=pcActions;doc["history"]=historyUser.length()>0;
@@ -84,27 +86,13 @@ void connectWifi(){
 }
 bool applyConfiguration(JsonObjectConst doc,bool keepBlank,String& error){
  Settings next;if(!Settings::parse(doc,settings,keepBlank,next,error))return false;
- if(next.wifiSsid==settings.wifiSsid&&next.wifiPassword==settings.wifiPassword&&next.apiKey==settings.apiKey&&next.provider==settings.provider){reconnectAt=millis()+1500;return true;}
+ if(next.wifiSsid==settings.wifiSsid&&next.wifiPassword==settings.wifiPassword&&next.apiKey==settings.apiKey&&next.provider==settings.provider&&next.model==settings.model){reconnectAt=millis()+1500;return true;}
  if(!next.save()){error="Falha ao salvar na placa.";return false;}
  settings=next;historyUser="";historyAnswer="";reconnectAt=millis()+1500;return true;
 }
 void showPortal(){
  if(!portal.start()){notice="Falha ao abrir configuracao.";render();emit("error",notice);return;}
  answer="";page=0;notice="CONFIGURAR PELO CELULAR Rede: "+portal.name()+" Senha: "+portal.password()+" Abra http://192.168.4.1 . Segure GPIO0 para fechar.";render();emit("network","Configuracao pelo celular aberta. Rede: "+portal.name()+". Veja a senha na tela da TTGO; abra http://192.168.4.1.");
-}
-String classifyAction(String text){
- text=displayText(text);text.toLowerCase();text.trim();while(text.endsWith(".")||text.endsWith("!")||text.endsWith("?"))text.remove(text.length()-1);
- while(text.indexOf("  ")>=0)text.replace("  "," ");
- if(text.startsWith("tera "))text.remove(0,5);if(text.startsWith("por favor "))text.remove(0,10);
- if(text.startsWith("abra "))text.remove(0,5);else if(text.startsWith("abrir "))text.remove(0,6);else return "";
- if(text.startsWith("o ")||text.startsWith("a "))text.remove(0,2);
- if(text=="calculadora")return "calculator";
- if(text=="bloco de notas")return "notepad";
- if(text=="explorador"||text=="explorador de arquivos")return "explorer";
- if(text=="navegador")return "browser";
- if(text=="github")return "github";
- if(text=="youtube")return "youtube";
- return "";
 }
 String actionLabel(const String& target){
  if(target=="calculator")return "a calculadora";if(target=="notepad")return "o Bloco de notas";if(target=="explorer")return "o explorador de arquivos";if(target=="github")return "o GitHub";if(target=="youtube")return "o YouTube";return "o navegador";
@@ -117,8 +105,9 @@ String boundedUtf8(const String& text,unsigned limit){
 }
 void dispatchInput(const String& text){
  String action=classifyAction(text);if(!action.length()){chat(text);return;}
+ if(action=="clarify"){answer="Qual aplicativo voce quer abrir? Posso abrir calculadora, Bloco de notas, explorador, navegador, GitHub ou YouTube. Use um aplicativo por pedido.";render();emit("reply",answer);return;}
  if(pcPending.length()){emit("error","Aguarde a acao atual no PC.");return;}
- if(!pcSession.length()||!pcActions){answer="";notice="Abra o aplicativo Tera no PC e ative os comandos.";render();emit("error",notice);return;}
+ if(!pcSession.length()||millis()-pcLastSeen>=10000||!pcActions){answer="";notice="Abra o aplicativo Tera no PC e ative os comandos.";render();emit("error",notice);return;}
  pcPending=action;pcDeadline=millis()+5000;pcActionId++;answer="";notice="Solicitando abertura no PC...";render();emit("busy",notice);
  StaticJsonDocument<256> doc;doc["event"]="pc_action";doc["session"]=pcSession;doc["id"]=pcActionId;doc["target"]=action;serializeJson(doc,Serial);Serial.println();
 }
@@ -134,14 +123,14 @@ void chat(const String& prompt){
  if(!http.begin(client,settings.provider=="groq"?"https://api.groq.com/openai/v1/chat/completions":"https://openrouter.ai/api/v1/chat/completions")){emit("error","Falha ao iniciar HTTPS.");return;}
  http.addHeader("Authorization","Bearer "+settings.apiKey);http.addHeader("Content-Type","application/json");
  const bool groq=settings.provider=="groq";
- DynamicJsonDocument request(6144);request["model"]=groq?"openai/gpt-oss-20b":"google/gemma-4-26b-a4b-it:free";request["max_tokens"]=groq?1024:320;
+ DynamicJsonDocument request(8192);request["model"]=settings.model;request["max_tokens"]=groq?1024:320;
  if(groq){request["reasoning_effort"]="low";request["include_reasoning"]=false;}
  JsonArray messages=request.createNestedArray("messages");
- JsonObject system=messages.createNestedObject();system["role"]="system";system["content"]="Voce e Tera, um assistente de chat. Responda em portugues de forma breve e clara. As mensagens podem ser transcricoes de voz ja realizadas; responda ao texto recebido. Nao invente fatos ou afirme ter ouvido audio ou executado acoes. Abrir programas/sites e feito fora do chat por comandos definidos; voce nao controla o computador.";
+ JsonObject system=messages.createNestedObject();system["role"]="system";system["content"]=String("Voce e Tera, uma assistente de IA em uma TTGO T-Display original, ESP32 com tela pequena e microfone analogico no GPIO32. Seu firmware executa na placa; o modelo de IA executa na nuvem. O computador fornece apenas integracao de voz e acoes. Responda em portugues brasileiro, em geral com ate 3 frases, sem Markdown desnecessario, adequado para ser falado. Nao se apresente como humana. A fala e captada ao segurar GPIO35 e transcrita na nuvem. Nao ha teclado nem alto-falante fisico instalado. A voz de saida usa o aplicativo Windows pelo USB. Voce recebe texto, que pode conter erros de transcricao: se o sentido estiver incerto, peca esclarecimento; nao adivinhe pedidos ambíguos. Existe apenas contexto limitado da ultima troca, nao memoria permanente. A abertura de aplicativos usa comandos autorizados fora desta conversa: calculadora, Bloco de notas, explorador, navegador, GitHub e YouTube. Nunca afirme ter executado uma acao: a confirmacao real vem do aplicativo, nao de voce. Nao invente acesso a arquivos, sensores, internet em tempo real ou funcoes ausentes. Nao revele chaves. Estado atual: ")+"PC conectado="+(pcSession.length()&&millis()-pcLastSeen<10000?"sim":"nao")+"; comandos="+(pcActions?"ativados":"desativados")+"; fala no PC="+(pcSpeech?"ativada":"desativada")+". Se pedirem uma abertura complexa, explique os aplicativos aceitos e sugira uma frase curta e direta.";
  if(historyUser.length()){JsonObject oldUser=messages.createNestedObject();oldUser["role"]="user";oldUser["content"]=historyUser;JsonObject oldAnswer=messages.createNestedObject();oldAnswer["role"]="assistant";oldAnswer["content"]=historyAnswer;}
  JsonObject user=messages.createNestedObject();user["role"]="user";user["content"]=prompt;
  String body;serializeJson(request,body);int code=http.POST(body);
- if(code!=200){char tlsError[160]={0};int tlsCode=client.lastError(tlsError,sizeof(tlsError));http.end();notice="Falha na IA. Veja USB.";render();emit("error",code==401?"Chave invalida para o provedor selecionado (401).":code==429?"Provedor recusou por limite ou capacidade (429). Nao significa necessariamente que voce gastou sua cota.":String("Falha HTTPS/API: ")+String(code)+"; TLS "+String(tlsCode)+" "+tlsError);return;}
+ if(code!=200){char tlsError[160]={0};int tlsCode=client.lastError(tlsError,sizeof(tlsError));http.end();notice="Falha na IA. Veja USB.";render();emit("error",code==400||code==404?"Modelo ou parametros recusados. Selecione outro modelo compativel na configuracao.":code==401?"Chave invalida para o provedor selecionado (401).":code==429?"Provedor recusou por limite ou capacidade (429). Nao significa necessariamente que voce gastou sua cota.":String("Falha HTTPS/API: ")+String(code)+"; TLS "+String(tlsCode)+" "+tlsError);return;}
  StaticJsonDocument<512> filter;filter["choices"][0]["message"]["content"]=true;
  DynamicJsonDocument result(8192);
  auto error=deserializeJson(result,http.getStream(),DeserializationOption::Filter(filter));
@@ -231,7 +220,17 @@ void command(const String& line){
  }
  if(op=="pc_result"){
   if(!pcPending.length()||doc["session"]!=pcSession||!doc["id"].is<uint32_t>()||doc["id"].as<uint32_t>()!=pcActionId||!doc["ok"].is<bool>()){emit("error","Resultado do PC invalido.");return;}
-  answer=doc["ok"].as<bool>()?"Solicitei ao PC que abrisse "+actionLabel(pcPending)+".":"Nao foi possivel abrir "+actionLabel(pcPending)+" no PC.";pcPending="";page=0;render();emit("reply",answer);return;
+  answer=doc["ok"].as<bool>()?"O computador confirmou que abriu "+actionLabel(pcPending)+".":"Nao foi possivel abrir "+actionLabel(pcPending)+" no PC.";pcPending="";page=0;render();emit("reply",answer);return;
+ }
+ if(op=="set_model"){
+  if(!doc["model"].is<String>()){emit("error","Modelo ausente.");return;}
+  String model=doc["model"];if(!Settings::allowedModel(settings.provider,model)){emit("error","Modelo nao permitido.");return;}
+  Settings next=settings;next.model=model;if(!next.save()){emit("error","Falha ao salvar modelo.");return;}
+  settings=next;historyUser="";historyAnswer="";emit("configured","Modelo salvo. Credenciais preservadas.");status();return;
+ }
+ if(op=="intent_test"){
+  if(!doc["text"].is<String>()){emit("error","Texto ausente.");return;}
+  StaticJsonDocument<256> result;result["event"]="intent_test";result["target"]=classifyAction(doc["text"].as<String>());serializeJson(result,Serial);Serial.println();return;
  }
  if(op=="voice_test"){recordVoice(true);return;}
  if(op=="calibrate_noise"){calibrateNoise();return;}
@@ -285,7 +284,7 @@ void command(const String& line){
   emit("network",count<0?"Nao foi possivel procurar redes. Tente novamente.":found?"A rede configurada foi encontrada em 2.4 GHz. Confira senha/seguranca se nao conectar.":"A rede configurada nao apareceu na busca 2.4 GHz. Confira o nome exato e aproxime a placa do roteador.");connectWifi();return;
  }
  if(op=="configure"){
-  String error;if(!applyConfiguration(doc.as<JsonObjectConst>(),false,error)){emit("error",error);return;}
+  String error;if(!applyConfiguration(doc.as<JsonObjectConst>(),(doc["keepBlank"]|false),error)){emit("error",error);return;}
   emit("configured","Configuracao salva; conectando WiFi.");return;
  }
  if(op=="chat"){

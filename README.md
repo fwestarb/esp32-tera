@@ -1,88 +1,62 @@
-# ESP32 Tera
+# ESP32 Tera — Alpha 1.0
 
-Chat de IA para a **TTGO T-Display original**, com tela minimalista em cinza e verde e uma árvore que ganha folhas quando chega uma resposta real.
+Assistente de IA para a **TTGO T-Display original**, com entrada por microfone, respostas na tela e integração opcional com Windows. Identidade minimalista em cinza e verde, com uma árvore que ganha folhas quando chega uma resposta.
 
-## Versão 0.5.1
+## Recursos da Alpha 1.0
 
-- **Voz de entrada:** microfone analógico em GPIO32. Segure GPIO35 para falar e solte para enviar; até dez segundos. A placa faz a transcrição pela Groq e mostra a resposta na tela.
-- **Voz no computador:** voz neural local Faber em português (Piper), com Daniel/Maria do Windows como alternativas. Não requer outra API. Pode ser desativada ou interrompida; para ao iniciar uma gravação.
-- **Comandos no PC:** frases definidas abrem calculadora, Bloco de notas, explorador, navegador, GitHub ou YouTube. A IA não executa código nem escolhe comandos arbitrários.
-- **Configuração pelo celular:** rede temporária com senha na tela e página local para Wi-Fi e chave pessoal de IA. Fecha após salvar ou depois de dez minutos.
-- **Contexto curto:** a última troca fica na RAM, com limites de tamanho e opção de limpar. Não é um histórico permanente.
+- **IA:** GPT-OSS 120B pela Groq como padrão; troca para 20B na configuração. OpenRouter oferece alternativa de texto com modelos gratuitos. Cada usuário usa sua chave; os planos gratuitos têm cotas.
+- **Entrada de voz:** microfone analógico amplificado no GPIO32, botão GPIO35 para falar e soltar para enviar, até dez segundos. Transcrição Groq na nuvem.
+- **Voz feminina no PC:** Dora/Kokoro em português brasileiro, gerada localmente. Faber/Piper e vozes Windows permanecem alternativas. Não há alto-falante na placa.
+- **Comandos naturais definidos:** “pode abrir a calculadora?”, “Tera, abre o Bloco de notas, por favor”. Alvos permitidos: calculadora, Bloco de notas, explorador, navegador, GitHub e YouTube. Frases ambíguas pedem esclarecimento. A interpretação desses comandos é local; respostas da IA não executam código.
+- **Contexto:** Tera conhece o dispositivo e o estado da integração PC; uma troca anterior fica na RAM. Não tem memória permanente.
+- **Configuração:** USB ou rede Wi-Fi temporária acessada pelo celular. Modelos são salvos sem reinstalar o firmware. Chaves nunca aparecem no portal ou nos downloads.
+- **Recuperação:** reconexão USB, renovação de sessão após reinício, deduplicação de ações e watchdog de 120 segundos.
 
-**Verificado em 10/10/2026:** firmware compilado e instalado com hash conferido; dez testes USB, nove testes HTTP/DNS na placa, sete verificações da página móvel e dezessete testes do aplicativo PC. A placa transcreveu uma gravação anterior e a resposta foi reproduzida pelo Windows. Um comando de voz sintetizado abriu a calculadora. Veja [evidências e limites](docs/RESULTADOS-0.5.0.md).
+## Instalação e uso
 
-## Usar
+Leia o [guia completo em português e inglês](docs/INSTALACAO-ALPHA.md). Requisitos: TTGO original, USB de dados, Wi-Fi 2,4 GHz e Windows com Python 3.12 para a integração PC.
 
-### Estabilidade e nova voz — 0.5.1
+No pacote local: `instalar.cmd` instala dependências e voz; `gravar-firmware.cmd` grava a placa; `configurar.cmd` abre o aplicativo. Não é um executável independente. Os modelos de voz são baixados separadamente. A gravação preserva a NVS.
 
-O aplicativo detecta quando a placa deixa de responder e tenta reconectar. A sessão é renovada após reiniciar a ESP32, sem descartar comandos como duplicados. Mensagens de manutenção não são acumuladas durante consultas bloqueantes. O firmware inclui watchdog de 120 segundos.
+Pelo celular, segure GPIO0 por aproximadamente dois segundos, conecte à rede TERA usando a senha na tela e abra http://192.168.4.1. Não segure GPIO0 durante reset. Depois de salvar, a placa fecha o portal e conecta ao Wi-Fi configurado.
 
-Para instalar a voz Faber: `python tools/install_voice.py`. O modelo de aproximadamente 63 MB fica no PC, fora do Git, em um ambiente Python isolado. Selecione a voz no aplicativo e use **Ouvir exemplo**. A escolha é salva localmente, sem credenciais. Os testes incluíram abertura real da calculadora, reset/repareamento da placa, transcrição pela Groq e resposta de chat reproduzida pelo Piper. [Resultados 0.5.1](docs/RESULTADOS-0.5.1.md).
+Segure GPIO35 para falar e solte para enviar. GPIO0 avança as páginas da resposta. Mantenha o aplicativo Windows aberto para áudio e comandos no PC. O X minimiza; **Encerrar assistente** fecha.
 
-### No PC
+![Configuração móvel](docs/images/configuracao-celular.png)
 
-1. Instale Python 3.12 e as dependências: `python -m pip install -r tools/requirements.txt`.
-2. Abra `configurar.cmd`. O aplicativo identifica a TTGO por USB e conecta automaticamente. O X minimiza para manter fala e comandos funcionando; **Encerrar assistente** desliga a integração.
-3. Com Wi-Fi e relógio sincronizados, segure GPIO35, fale e solte. Também é possível digitar perguntas e comandos na interface.
-4. Exemplos: **“abra a calculadora”**, **“abrir GitHub”**, **“abra o Bloco de notas”**. Frases diferentes seguem para o chat; não há controle livre do computador.
+Captura da página real com dados de exemplo, navegador de 390 px e servidor simulado; teste HTTP/DNS na placa foi executado separadamente.
 
-Para iniciar o aplicativo ao entrar no Windows: `powershell -NoProfile -File tools/install_pc_startup.ps1`. A instalação só cria um atalho na pasta Inicializar do seu usuário. Para remover, apague o atalho **ESP32 Tera** nessa pasta. O X minimiza; **Encerrar assistente** fecha o aplicativo.
+## Testes e limites
 
-### Pelo celular
+[Resultados da Alpha 1.0](docs/RESULTADOS-ALPHA-1.0.md). A versão foi testada com a placa física, consultas autenticadas à Groq e reprodução local. O relatório distingue testes automáticos, gravações anteriores e funções ainda não verificadas em outro computador/celular.
 
-1. Segure **GPIO0 por cerca de dois segundos** enquanto a placa está ligada. Não segure esse botão durante o reset, pois ele também seleciona o modo de gravação do ESP32.
-2. Conecte o celular à rede **TERA-…**, usando a senha mostrada na tela. Ela é temporária e não oferece internet; mantenha a conexão mesmo se o celular avisar disso.
-3. Abra **http://192.168.4.1** no navegador. Informe Wi-Fi 2,4 GHz, provedor e chave pessoal. Campos secretos vazios mantêm as credenciais do mesmo provedor/rede; para outra rede informe a senha. Marque a opção correspondente se sua rede não tiver senha.
-4. Salve. A rede Tera fecha e a placa tenta conectar ao seu Wi-Fi. Se precisar reconfigurar, abra a rede novamente pelo botão.
+IA e transcrição exigem internet. O plano gratuito não é ilimitado. OpenRouter não oferece entrada de voz nesta alpha. O teclado opcional e o alto-falante físico ainda não foram implementados. Requisições HTTPS têm timeout e são bloqueantes, sem streaming. A última troca é limitada a 512 bytes de pergunta e 1024 bytes de resposta.
 
-Sem configuração, o portal abre ao iniciar. Após uma falha prolongada de conexão, também abre uma vez. Enquanto a configuração está aberta, consultas de IA ficam pausadas.
-
-![Página de configuração móvel](docs/images/configuracao-celular.png)
-
-*Captura da página real em navegador com largura de celular; dados de exemplo e servidor simulado. A validação HTTP/DNS foi feita separadamente na ESP32.*
-
-## Instalar o firmware
-
-```text
-pio run -e ttgo_t_display -t upload --upload-port COM3
-```
-
-A instalação preserva a configuração NVS existente. Groq é usado para texto e voz; OpenRouter permanece opção de texto. GPIO0 também avança páginas com um toque curto.
-
-## Dados, gratuidade e limites
-
-A chave fica na NVS **sem criptografia**, fora do código; não publique backups da flash. O aplicativo não salva chaves ou gravações do microfone no PC. O Piper usa um WAV temporário para falar a resposta e o apaga depois. A interface pode mostrar transcrições e respostas. Áudio temporário é enviado ao provedor para transcrição; perguntas e uma troca anterior vão para o chat.
-
-Use sua chave pessoal de uma conta gratuita. As APIs têm cotas e podem responder 429 mesmo na primeira tentativa, por capacidade ou limite. O firmware não verifica faturamento nem ativa planos. Não há IA local/offline.
-
-A montagem não tem alto-falante nem teclado. A voz de saída depende do **Windows com o aplicativo ativo e uma saída de áudio**. A placa continua usando a tela quando não há PC. Durante as consultas HTTPS, não é possível interromper a requisição pelos botões; há timeouts, sem streaming. A captura continua limitada a dez segundos e amostragem por software.
+Chaves ficam na NVS sem criptografia; não distribua dumps da flash. Áudio é enviado à Groq, perguntas ao provedor selecionado. Síntese de voz no PC usa WAV temporário apagado após reprodução. [Hardware e montagem](docs/HARDWARE.md) · [Componentes e licenças](docs/THIRD-PARTY.md).
 
 ## Desenvolvimento
 
 ```text
+pio run -e ttgo_t_display
 python tools/test_pc_bridge.py
 python tools/test_device.py
-python tools/test_pc_device.py
+python tools/test_alpha_device.py
+python tools/test_pc_recovery.py
+python tools/package_alpha.py
 ```
 
-O primeiro teste não usa hardware. Os demais usam a placa; o teste integrado usa arquivos locais de áudio de desenvolvimento, que não são publicados no Git, e consome chamadas da sua API. A página pode ser testada com Node.js, Playwright e Edge: `node tools/test_portal_ui.cjs`.
-
-- [Resultados 0.5.0](docs/RESULTADOS-0.5.0.md)
-- [Voz e limites de memória/amostragem](docs/VOZ.md)
-- [Configuração Groq](docs/GROQ.md)
-- [Hardware](docs/HARDWARE.md)
-- [Planejamento](docs/PLANO.md)
-- [Evidências anteriores 0.4.0](docs/RESULTADOS-VOZ-0.4.0.md)
+Os testes físicos usam COM3 por padrão e consomem chamadas da API. O teste de recuperação usa uma gravação sintetizada local, fora do Git. O pacote é criado em `dist`, com manifesto SHA-256 e apenas arquivos explicitamente selecionados. Nada é publicado pelo script.
 
 ## English
 
-**0.5.1 update:** optional offline Portuguese Piper Faber neural speech, selectable Windows alternatives, recent-response checks, reboot/session recovery and a 120-second main-task watchdog. Closing the window minimizes it; the explicit Quit button stops the companion. The model is installed separately on the PC with `python tools/install_voice.py`. Physical tests covered Calculator and neural playback before/after reset, cloud transcription of a synthesized command and a real spoken chat reply. See the new results report.
+**ESP32 Tera Alpha 1.0** is an AI assistant for the original TTGO T-Display. Hold GPIO35 to record amplified analog microphone input on GPIO32, release to submit up to ten seconds, and read the response on the display. Short-press GPIO0 to advance pages. AI and transcription require internet and a personal API key.
 
-AI chat for the original TTGO T-Display. Hold GPIO35 to record Portuguese speech and release to submit (maximum ten seconds). The ESP32 sends audio to Groq for transcription, then displays the AI response. Short-press GPIO0 to advance pages; hold it for about two seconds to open a temporary password-protected configuration Wi-Fi network. Connect a phone using the password on the display and browse to **http://192.168.4.1**. The portal closes after saving or ten minutes. Never hold GPIO0 during reset.
+Groq GPT-OSS 120B is the default chat model; 20B is selectable without reflashing. OpenRouter supports text-only free models. Free accounts have usage limits. The system context identifies Tera, its hardware and current PC capabilities. One bounded previous exchange stays in RAM.
 
-The Windows USB companion automatically connects and reads replies using offline Portuguese Piper Faber speech or a selected Windows voice, without another API. It can open a fixed set of applications/sites through explicit Portuguese commands: calculator, Notepad, Explorer, browser, GitHub and YouTube. AI responses are never interpreted as executable commands. Closing the window minimizes it; use the explicit Quit button to stop the assistant. Optional per-user startup installation creates a removable shortcut.
+The optional Windows companion produces offline Brazilian Portuguese female Dora speech using Kokoro. It opens an allowlisted set of applications/sites from supported Portuguese request variants, including polite phrases. Negative requests are not executed; ambiguous targets request clarification. AI responses never become executable shell commands. PC audio/actions need the companion running. Closing its window minimizes it; the explicit Quit button stops it.
 
-Version 0.5.0 was built/flashed with hash verification. Automated tests covered USB validation, HTTP/DNS on the physical ESP32, the mobile HTML page, Windows playback, a prerecorded microphone clip and a synthesized voice command that opened Calculator. These tests do **not** prove a fresh live microphone/button capture or connection from an actual phone. See the results report for exact scope.
+Setup is available over USB and a temporary password-protected Wi-Fi network for phone configuration. Hold GPIO0 for about two seconds while running, connect using the displayed password and visit http://192.168.4.1. Do not hold GPIO0 during reset. The portal closes after saving or ten minutes.
 
-API credentials stay in unencrypted NVS; cloud services receive audio/text and enforce quotas. One bounded previous exchange stays in RAM. No physical speaker or keyboard is included. PC speech/actions require Windows and the companion; standalone screen chat still needs Wi-Fi and power. HTTPS requests are blocking with timeouts, not streaming.
+The local release ZIP includes firmware with integrity hashes, source and Windows setup scripts. It requires Python 3.12 and downloads voice models separately. API keys and existing configuration are not included. Read the [installation guide](docs/INSTALACAO-ALPHA.md) and [test results](docs/RESULTADOS-ALPHA-1.0.md). Physical keyboard/speaker are not implemented. Credentials remain in unencrypted NVS; never publish device flash dumps. Cloud providers receive audio/text, and HTTPS requests are blocking with timeouts. USB reconnection, session recovery and a main-task watchdog improve fault recovery.
+
+No website or public release has been created for this local preparation.

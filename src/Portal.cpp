@@ -39,14 +39,14 @@ void Portal::routes(){
  server.on("/",HTTP_GET,[this](){
   if(!fromAP()){json(403,"{\"error\":\"Use a rede Wi-Fi da Tera.\"}");return;}
   if(server.hostHeader()!="192.168.4.1"){server.sendHeader("Location","http://192.168.4.1/");server.send(302);return;}
-  String page((const char*)portalPage);page.replace("{{TOKEN}}",token);page.replace("{{SSID}}",escapeHtml(settings.wifiSsid));page.replace("{{GROQ_SELECTED}}",settings.provider=="groq"?"selected":"");page.replace("{{OR_SELECTED}}",settings.provider=="openrouter"?"selected":"");
+  String page((const char*)portalPage);page.replace("{{TOKEN}}",token);page.replace("{{MODEL}}",escapeHtml(settings.model));page.replace("{{SSID}}",escapeHtml(settings.wifiSsid));page.replace("{{GROQ_SELECTED}}",settings.provider=="groq"?"selected":"");page.replace("{{OR_SELECTED}}",settings.provider=="openrouter"?"selected":"");
   server.sendHeader("Cache-Control","no-store");server.sendHeader("X-Frame-Options","DENY");
   server.sendHeader("Content-Security-Policy","default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-"+token+"'; connect-src 'self'; img-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
   server.send(200,"text/html; charset=utf-8",page);
  });
  server.on("/api/status",HTTP_GET,[this](){
   if(!protectedRequest())return;
-  StaticJsonDocument<256> doc;doc["wifi"]=WiFi.status()==WL_CONNECTED;doc["configured"]=settings.apiKey.length()>0;doc["provider"]=settings.provider;doc["expiresSeconds"]=max(0L,600L-long((millis()-started)/1000));
+  StaticJsonDocument<512> doc;doc["wifi"]=WiFi.status()==WL_CONNECTED;doc["configured"]=settings.apiKey.length()>0;doc["provider"]=settings.provider;doc["model"]=settings.model;doc["expiresSeconds"]=max(0L,600L-long((millis()-started)/1000));
   String body;serializeJson(doc,body);json(200,body);
  });
  server.on("/api/config",HTTP_POST,[this](){

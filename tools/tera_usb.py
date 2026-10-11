@@ -13,12 +13,13 @@ from urllib.request import Request, urlopen
 from pc_bridge import PCBridge
 
 IPC_PORT = 39135
-VOICES={'Faber · neural local (Piper)':'piper-faber','Daniel · Windows':'windows-daniel','Maria · Windows':'windows-maria'}
+VOICES={'Dora · feminina local (Kokoro)':'kokoro-dora','Faber · neural local (Piper)':'piper-faber','Daniel · Windows':'windows-daniel','Maria · Windows':'windows-maria'}
 PREFERENCES=Path(os.environ.get('LOCALAPPDATA',str(Path.home())))/'ESP32 Tera'/'preferences.json'
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--minimized', action='store_true')
+    parser.add_argument('--self-test', action='store_true', help=argparse.SUPPRESS)
     args = parser.parse_args()
     events = queue.Queue()
     bridge = PCBridge(events.put)
@@ -49,7 +50,7 @@ def main():
         bridge.close()
         return
     threading.Thread(target=ipc.serve_forever,daemon=True).start()
-    root = tk.Tk(); root.title('ESP32 Tera — assistente USB'); root.geometry('760x730')
+    root = tk.Tk(); root.title('ESP32 Tera — assistente USB'); root.geometry('820x850')
     frame = ttk.Frame(root,padding=16); frame.pack(fill='both',expand=True)
     ttk.Label(frame,text='ESP32 TERA',font=('Segoe UI',18,'bold')).pack(anchor='w')
     status = tk.StringVar(value='Procurando a TTGO por USB…')
@@ -59,6 +60,7 @@ def main():
     if bridge.ports(): port.set(bridge.ports()[0])
     speech = tk.BooleanVar(value=True); actions = tk.BooleanVar(value=True); automatic = tk.BooleanVar(value=True)
     portal_active = False
+    config_initialized = False
     def append(text):
         output.configure(state='normal'); output.insert('end',text+'\n\n')
         if int(output.index('end-1c').split('.')[0])>400: output.delete('1.0','101.0')
@@ -93,17 +95,23 @@ def main():
         except OSError:append('Não foi possível salvar a escolha de voz.')
     voice.bind('<<ComboboxSelected>>',change_voice)
     ttk.Button(voice_row,text='Ouvir exemplo',command=lambda:bridge.speech.say('Olá, eu sou a Tera. Esta é minha voz em português.')).pack(side='left')
-    ttk.Label(frame,text='Comandos: “abra a calculadora”, “abra o Bloco de notas”, “abrir GitHub”,\n“abrir YouTube”, “abrir navegador” ou “abrir explorador de arquivos”.').pack(anchor='w',pady=5)
+    ttk.Label(frame,text='Comandos: “pode abrir a calculadora?”, “abra o Bloco de notas”, “abrir GitHub”,\n“abrir YouTube”, “abrir navegador” ou “abrir explorador de arquivos”.').pack(anchor='w',pady=5)
     config = ttk.LabelFrame(frame,text='Configuração da placa',padding=10); config.pack(fill='x',pady=5)
     provider = ttk.Combobox(config,values=['groq','openrouter'],state='readonly'); provider.set('groq')
     ttk.Label(config,text='IA: Groq para texto e voz; OpenRouter para texto').pack(anchor='w'); provider.pack(fill='x')
+    model=ttk.Combobox(config,values=['openai/gpt-oss-120b','openai/gpt-oss-20b'],state='readonly');model.set('openai/gpt-oss-120b')
+    ttk.Label(config,text='Modelo de conversa (não altera a transcrição)').pack(anchor='w');model.pack(fill='x')
+    def provider_models(event=None):
+        groq=provider.get()=='groq';model.configure(values=['openai/gpt-oss-120b','openai/gpt-oss-20b'] if groq else ['openrouter/free'],state='readonly' if groq else 'normal');model.set('openai/gpt-oss-120b' if groq else 'openrouter/free')
+    provider.bind('<<ComboboxSelected>>',provider_models)
+    ttk.Button(config,text='Trocar somente o modelo',command=lambda:send({'op':'set_model','model':model.get()})).pack(anchor='w')
     fields={}
     for name,label,secret in [('ssid','Wi-Fi 2,4 GHz',False),('password','Senha do Wi-Fi',True),('key','Chave de API',True)]:
         ttk.Label(config,text=label).pack(anchor='w')
         fields[name]=ttk.Entry(config,show='•' if secret else ''); fields[name].pack(fill='x')
-    ttk.Label(config,text='Para manter credenciais existentes, use a configuração pelo celular.\nAs chaves ficam na NVS da placa, sem criptografia; não são gravadas no PC.').pack(anchor='w',pady=4)
+    ttk.Label(config,text='Senha/chave vazias mantêm os dados da mesma rede/provedor.\nAs chaves ficam na NVS da placa, sem criptografia; não são gravadas no PC.').pack(anchor='w',pady=4)
     def configure():
-        payload={name:field.get() for name,field in fields.items()}; payload.update(op='configure',provider=provider.get())
+        payload={name:field.get() for name,field in fields.items()}; payload.update(op='configure',provider=provider.get(),model=model.get(),keepBlank=True)
         if send(payload): fields['password'].delete(0,'end'); fields['key'].delete(0,'end')
     ttk.Button(config,text='Salvar na placa',command=configure).pack(anchor='w')
     ttk.Label(frame,text='Pergunta ou comando · até 1024 bytes · contexto da última troca').pack(anchor='w',pady=(8,0))
@@ -119,13 +127,15 @@ def main():
     ttk.Button(buttons,text='Parar voz',command=bridge.speech.cancel).pack(side='left')
     output=tk.Text(frame,height=9,wrap='word',state='disabled'); output.pack(fill='both',expand=True,pady=8)
     def poll():
-        nonlocal portal_active
+        nonlocal portal_active, config_initialized
         while not events.empty():
             event=events.get(); kind=event.get('event')
             if kind=='show': root.deiconify(); root.lift()
             elif kind=='status':
                 portal_active=bool(event.get('portal'))
-                status.set(f"{bridge.current_port} · firmware {event.get('version')} · Wi-Fi {'conectado' if event.get('wifi') else 'pendente'}"+(' · configuração pelo celular aberta' if portal_active else ''))
+                if not config_initialized and event.get('provider'):
+                    provider.set(event['provider']);provider_models();model.set(event.get('model',model.get()));fields['ssid'].insert(0,event.get('ssid',''));config_initialized=True
+                status.set(f"{bridge.current_port} · firmware {event.get('version')} · {event.get('model','')} · Wi-Fi {'conectado' if event.get('wifi') else 'pendente'}"+(' · configuração pelo celular aberta' if portal_active else ''))
             elif kind=='usb': status.set('USB conectado; identificando Tera…' if event.get('connected') else 'USB desconectado. Aguardando a placa…')
             elif kind=='transcript': append('Você disse: '+event.get('message',''))
             elif kind in ('reply','error','configured','network','countdown'):
@@ -143,7 +153,32 @@ def main():
     def close(): bridge.close(); ipc.shutdown(); ipc.server_close(); root.destroy()
     ttk.Button(buttons,text='Encerrar assistente',command=close).pack(side='right')
     root.protocol('WM_DELETE_WINDOW',root.iconify)
+    if args.self_test:
+        def ui_test():
+            try:
+                root.update_idletasks()
+                report={'passed':True,'window':{'width':root.winfo_width(),'height':root.winfo_height()},'checks':[]}
+                assert output.winfo_height()>=40,'Área de respostas sem espaço'
+                assert buttons.winfo_rooty()+buttons.winfo_height()<=root.winfo_rooty()+root.winfo_height(),'Botões fora da janela'
+                for name,control in fields.items():
+                    assert control.winfo_width()>100
+                    if name in ('password','key'):assert control.cget('show')=='•'
+                report['checks'].extend(['controls fit window','secret fields masked','response area visible'])
+                provider.set('openrouter');provider_models();assert model.get()=='openrouter/free'
+                provider.set('groq');provider_models();assert model.get()=='openai/gpt-oss-120b'
+                model.set('openai/gpt-oss-20b')
+                events.put({'event':'status','provider':'groq','model':'openai/gpt-oss-120b','version':'1.0.0-alpha.1','wifi':True})
+                poll();assert model.get()=='openai/gpt-oss-20b','Estado sobrescreveu escolha do usuário'
+                assert VOICES[voice.get()]==bridge.speech.voice
+                report['checks'].extend(['provider changes compatible models','status preserves edited selection','voice selection matches engine'])
+                (Path(__file__).resolve().parents[1]/'docs/TESTE-INTERFACE-PC-ALPHA.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+                print('PASS: Tk companion UI (6 checks)',flush=True)
+            except Exception as error:
+                print('FAIL: '+str(error),flush=True);root.exit_code=1
+            finally:close()
+        root.after(4500,ui_test)
     if args.minimized: root.after(100,root.iconify)
     poll(); auto_connect(); root.mainloop()
+    if getattr(root,'exit_code',0):raise SystemExit(root.exit_code)
 
 if __name__=='__main__': main()

@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "speech": {
+    "ok": true,
+    "engine": "kokoro",
+    "voice": "Dora",
+    "culture": "pt-BR",
+    "characters": 122,
+    "elapsedMs": 5141,
+    "mode": "wav"
+  },
+  "audio": {
+    "rate": 24000,
+    "seconds": 8.736,
+    "rms": 1747
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "version": "1.0.0-alpha.1",
+  "date": "2026-10-11",
+  "ramStaticBytes": 47704,
+  "flashCodeBytes": 1054197,
+  "applicationCapacityBytes": 1310720,
+  "firmwareBytes": 1060496,
+  "firmwareSha256": "a262e1737ba7ae17e54abbc626d6a2ab76c841f88438a42738ca80154eb4ceef",
+  "flashVerified": true,
+  "previousVersionRecoverable": true
+}

@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "date": "2026-10-11",
+  "scope": "release extracted in another folder on this Windows; isolated dependencies installed; verified model assets copied from original installation, not redownloaded; actual release flasher wrote physical TTGO; relocated companion paired and Dora playback completed",
+  "checks": [
+    "ZIP CRC and secret/fixture/backup exclusion",
+    "firmware manifest hashes",
+    "fresh isolated PC and voice dependency installation",
+    "voice model hashes and warmup",
+    "release flasher actual COM3 upload and integrity verification",
+    "NVS preserved and 120B retained",
+    "relocated Tk UI",
+    "relocated USB pairing",
+    "relocated Dora audio playback"
+  ],
+  "speech": {
+    "event": "speech",
+    "ok": true,
+    "engine": "kokoro",
+    "voice": "Dora",
+    "culture": "pt-BR",
+    "characters": 59,
+    "elapsedMs": 6750,
+    "mode": "playback"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-11",
+  "scope": "actual embedded HTML in headless Edge, 390px mobile viewport; HTTP mocked, no actual phone",
+  "passed": true,
+  "checks": [
+    "form payload and anti-CSRF header",
+    "clears secret fields after saving",
+    "shows backend validation error",
+    "re-enables save after failure",
+    "provider placeholder",
+    "no horizontal overflow",
+    "no JavaScript exceptions",
+    "default model submitted",
+    "OpenRouter free model and custom :free submitted",
+    "Groq model switch submitted"
+  ]
+}

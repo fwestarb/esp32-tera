@@ -1,26 +1,15 @@
-# Groq gratuito
+# Groq — configuração Alpha 1.0
 
-1. Entre em https://console.groq.com/keys e crie uma chave pessoal (gsk_...).
-2. Mantenha a conta no plano Free. O firmware nao verifica seu plano de faturamento.
-3. Na interface Tera, selecione groq, preencha Wi-Fi 2,4 GHz, senha e a chave Groq; salve na placa. A chave OpenRouter nao funciona na Groq.
-4. Aguarde Wi-Fi/relogio e envie uma pergunta curta. Nao envie a chave pelo chat nem publique no Git.
+Crie sua chave pessoal em https://console.groq.com/keys e mantenha o plano gratuito se não quiser pagar. O sistema não consulta faturamento nem altera o plano.
 
-Modelo: openai/gpt-oss-20b. Documentacao de 06/10/2026: Free com 30 pedidos/minuto, 1.000/dia, 8.000 tokens/minuto e 200.000 tokens/dia. Verifique os limites exatos da sua conta; qualquer um desses limites pode interromper as consultas. Nao e ilimitado.
+Selecione Groq na Tera, configure Wi-Fi 2,4 GHz e chave, e escolha **openai/gpt-oss-120b** (padrão) ou **openai/gpt-oss-20b**. A escolha fica na placa e pode ser alterada sem reinstalar firmware. Aguarde Wi-Fi e relógio para HTTPS. Não envie sua chave pelo chat ou publique no Git.
 
-Firmware 0.3.0 compilado e instalado com hash verificado; dez testes USB passaram. HTTPS com Groq passou na TTGO: HTTP 401 esperado ao consultar /openai/v1/models sem chave. Isso valida TLS, nao geracao de texto. A resposta autenticada aguarda sua chave Groq.
+A entrada de voz usa **whisper-large-v3-turbo**, separadamente do modelo de conversa. Cada pergunta falada normalmente usa uma transcrição e uma consulta de chat. Aberturas reconhecidas localmente usam só a transcrição. A voz feminina Dora é gerada no PC, sem API de fala.
 
-Credenciais OpenRouter atuais preservadas ate salvar a nova configuracao. Evidencias: TESTE-GROQ-TLS.json e TESTES-USB-0.3.0.json.
+Ambos os modelos de chat responderam em consultas autenticadas pela TTGO nos testes de 11/10/2026. As cotas dependem do modelo e da conta; confira https://console.groq.com/docs/rate-limits. HTTP 429 pode indicar cota ou capacidade. A aprovação dos testes não comprova uso ilimitado.
 
-Fontes oficiais:
-- https://console.groq.com/docs/rate-limits
-- https://console.groq.com/docs/quickstart
-- https://console.groq.com/docs/billing-faqs
-- https://console.groq.com/docs/api-reference
+OpenRouter permanece uma alternativa de texto com chave própria e modelos gratuitos. Não fornece transcrição do microfone nesta alpha.
 
 ## English
 
-Select Groq in the USB tool and save your Wi-Fi credentials and personal Groq key. Keep the account on Free; the firmware does not verify billing status. Model: openai/gpt-oss-20b. Physical-board TLS and protocol checks passed; authenticated chat awaits a user-provided key.
-
-## Atualizacao de voz 09/10/2026
-
-Firmware 0.4.0 acrescenta Whisper large v3 turbo para transcrever portugues. Autenticacao, transcricao e resposta GPT OSS passaram na TTGO usando uma gravacao anterior conhecida; veja RESULTADOS-VOZ-0.4.0.md. O plano Free tem cotas separadas de texto e audio. Cada pergunta por voz usa dois pedidos.
+Create your personal Groq key and use the Free plan if you do not want billing. Tera does not change or inspect billing. Choose GPT-OSS 120B or 20B; both were tested with actual authenticated requests on the ESP32. The selected model persists without reflashing. Whisper large-v3-turbo handles speech input independently. Offline Dora speech runs on the PC. Cloud quotas remain account/model dependent; 429 can indicate rate limits or capacity.
