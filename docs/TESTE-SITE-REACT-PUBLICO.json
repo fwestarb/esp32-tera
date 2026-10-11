@@ -1,0 +1,65 @@
+{
+  "url": "https://fwestarb.github.io/esp32-tera/",
+  "http": 200,
+  "layouts": [
+    {
+      "language": "pt",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "language": "pt",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "language": "pt",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "language": "pt",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "language": "en",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "language": "en",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "language": "en",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "language": "en",
+      "width": 1440,
+      "overflow": false
+    }
+  ],
+  "languagePersistence": true,
+  "selectorKeyboard": true,
+  "clipboard": true,
+  "faq": true,
+  "webglComponents": true,
+  "galleryKeyboard": true,
+  "verticalScroll": true,
+  "solidBackground": true,
+  "download": {
+    "sha256": "fd383665bb255cd4eee7707bd34ca48568b9285a645a953c8445fdf0c4e4c2d6",
+    "verified": true,
+    "loader": true,
+    "corruptFileRejected": true,
+    "networkFailureHandled": true,
+    "cancellation": true
+  },
+  "reducedMotion": true,
+  "noWebGLFallback": true,
+  "javascriptErrors": []
+}

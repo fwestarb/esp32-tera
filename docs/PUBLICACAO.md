@@ -35,3 +35,9 @@ Playwright checks in headless Edge cover both languages at 320, 390, 768 and 144
 The release includes an explicit selection of source files and firmware, with SHA-256 integrity files. Voice models, environments, recordings, secrets and NVS dumps are excluded. Installation requires Python 3.12 on Windows and a personal provider key. Free APIs have quotas. Firmware/app validation and untested hardware cases are documented separately in the Alpha results.
 
 The deployed website also passed the browser checks with HTTP 200. Release assets were downloaded from GitHub and matched the local files byte for byte. See [public deployment verification](VERIFICACAO-PUBLICACAO.json). No firmware changes or new microphone tests were performed during website publication.
+
+## Revisão React Bits
+
+A revisão com seis componentes, base sólida e textos objetivos também passou nos testes após publicação: [relatório público React](TESTE-SITE-REACT-PUBLICO.json). Inclui download real da cópia da Alpha, SHA-256, cancelamento, rejeição de arquivo corrompido, tratamento de falha de rede, galeria por teclado e fallback sem WebGL. Dappled Light permanece pendente por ausência de licença. O firmware e a release Alpha permanecem os mesmos.
+
+The React Bits revision passed the same checks on the public URL, including a real download and integrity/error handling. See the linked public report. Dappled Light is pending a Pro license. Firmware and the Alpha release are unchanged.

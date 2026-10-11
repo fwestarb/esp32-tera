@@ -1271,4 +1271,3 @@ const FlexCarousel = ({
 };
 
 export default FlexCarousel;
-

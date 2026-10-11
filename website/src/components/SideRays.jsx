@@ -258,4 +258,3 @@ void main() {
 };
 
 export default SideRays;
-

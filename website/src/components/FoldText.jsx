@@ -199,4 +199,3 @@ const FoldText = ({
 };
 
 export default FoldText;
-

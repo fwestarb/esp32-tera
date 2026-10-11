@@ -824,4 +824,3 @@ const HalftoneReveal = ({
 };
 
 export default HalftoneReveal;
-
