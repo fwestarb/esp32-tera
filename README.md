@@ -1,6 +1,8 @@
-# ESP32 Tera — Alpha 1.0
+# esp32-tera — Alpha 1.0
 
 Assistente de IA para a **TTGO T-Display original**, com entrada por microfone, respostas na tela e integração opcional com Windows. Identidade minimalista em cinza e verde, com uma árvore que ganha folhas quando chega uma resposta.
+
+[Site e passo a passo](https://fwestarb.github.io/esp32-tera/) · [Baixar Alpha 1.0](https://github.com/fwestarb/esp32-tera/releases/tag/v1.0.0-alpha.1) · [Instalação / Installation](docs/INSTALACAO-ALPHA.md)
 
 ## Recursos da Alpha 1.0
 
@@ -16,7 +18,7 @@ Assistente de IA para a **TTGO T-Display original**, com entrada por microfone, 
 
 Leia o [guia completo em português e inglês](docs/INSTALACAO-ALPHA.md). Requisitos: TTGO original, USB de dados, Wi-Fi 2,4 GHz e Windows com Python 3.12 para a integração PC.
 
-No pacote local: `instalar.cmd` instala dependências e voz; `gravar-firmware.cmd` grava a placa; `configurar.cmd` abre o aplicativo. Não é um executável independente. Os modelos de voz são baixados separadamente. A gravação preserva a NVS.
+No pacote da versão: `instalar.cmd` instala dependências e voz; `gravar-firmware.cmd` grava a placa; `configurar.cmd` abre o aplicativo. Não é um executável independente. Os modelos de voz são baixados separadamente. A gravação preserva a NVS.
 
 Pelo celular, segure GPIO0 por aproximadamente dois segundos, conecte à rede TERA usando a senha na tela e abra http://192.168.4.1. Não segure GPIO0 durante reset. Depois de salvar, a placa fecha o portal e conecta ao Wi-Fi configurado.
 
@@ -57,6 +59,8 @@ The optional Windows companion produces offline Brazilian Portuguese female Dora
 
 Setup is available over USB and a temporary password-protected Wi-Fi network for phone configuration. Hold GPIO0 for about two seconds while running, connect using the displayed password and visit http://192.168.4.1. Do not hold GPIO0 during reset. The portal closes after saving or ten minutes.
 
-The local release ZIP includes firmware with integrity hashes, source and Windows setup scripts. It requires Python 3.12 and downloads voice models separately. API keys and existing configuration are not included. Read the [installation guide](docs/INSTALACAO-ALPHA.md) and [test results](docs/RESULTADOS-ALPHA-1.0.md). Physical keyboard/speaker are not implemented. Credentials remain in unencrypted NVS; never publish device flash dumps. Cloud providers receive audio/text, and HTTPS requests are blocking with timeouts. USB reconnection, session recovery and a main-task watchdog improve fault recovery.
+The release ZIP includes firmware with integrity hashes, source and Windows setup scripts. It requires Python 3.12 and downloads voice models separately. API keys and existing configuration are not included. Read the [installation guide](docs/INSTALACAO-ALPHA.md) and [test results](docs/RESULTADOS-ALPHA-1.0.md). Physical keyboard/speaker are not implemented. Credentials remain in unencrypted NVS; never publish device flash dumps. Cloud providers receive audio/text, and HTTPS requests are blocking with timeouts. USB reconnection, session recovery and a main-task watchdog improve fault recovery.
 
-No website or public release has been created for this local preparation.
+[Website and setup walkthrough](https://fwestarb.github.io/esp32-tera/) · [Download Alpha 1.0](https://github.com/fwestarb/esp32-tera/releases/tag/v1.0.0-alpha.1).
+
+Website: static HTML, CSS and JavaScript hosted on GitHub Pages, with Portuguese/English selection, responsive layout and reduced-motion support. See [publication and checks](docs/PUBLICACAO.md).

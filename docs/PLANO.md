@@ -2,13 +2,14 @@
 
 A implementação atual está documentada em README.md, INSTALACAO-ALPHA.md e RESULTADOS-ALPHA-1.0.md. Já existem configuração USB/celular, chat real com modelos selecionáveis, entrada de voz GPIO32/35, voz feminina no PC e abertura de aplicativos permitidos. Não há streaming; a conversa mantém apenas a última troca. O modelo de chat não é executado na ESP32.
 
+Repositório, site e pacote Alpha publicados com autorização do autor: consulte [PUBLICACAO.md](PUBLICACAO.md).
+
 Próximas etapas, fora desta alpha:
 
-1. Publicação do repositório e site de download, somente após autorização específica.
-2. Testes em um celular físico e em outro Windows.
-3. Teclado opcional quando a peça estiver disponível.
-4. Saída de áudio na placa quando os componentes forem definidos.
-5. Melhorar responsividade durante HTTPS e avaliar streaming conforme os limites de memória.
+1. Testes em um celular físico e em outro Windows.
+2. Teclado opcional quando a peça estiver disponível.
+3. Saída de áudio na placa quando os componentes forem definidos.
+4. Melhorar responsividade durante HTTPS e avaliar streaming conforme os limites de memória.
 
 Nenhuma compra é necessária para a preparação local atual.
 

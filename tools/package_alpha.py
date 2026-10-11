@@ -19,7 +19,7 @@ def main():
         names.extend(str(p.relative_to(ROOT)) for p in (ROOT/directory).rglob('*') if p.is_file())
     for name in ['tera_usb.py','pc_bridge.py','speech.ps1','piper_speech.py','dora_speech.py','install_pc.py','install_voice.py','install_dora.py','dora_assets.json','flash_alpha.py','requirements.txt','requirements-dora.txt','install_pc_startup.ps1','test_pc_bridge.py','test_device.py','test_alpha_device.py','test_pc_recovery.py','test_pc_device.py','test_pc_app.py','test_portal_ui.cjs','package_alpha.py']:
         names.append('tools/'+name)
-    for name in ['INSTALACAO-ALPHA.md','THIRD-PARTY.md','RESULTADOS-ALPHA-1.0.md','HARDWARE.md']:
+    for name in ['INSTALACAO-ALPHA.md','THIRD-PARTY.md','RESULTADOS-ALPHA-1.0.md','HARDWARE.md','PUBLICACAO.md','TESTE-SITE-ALPHA.json']:
         names.append('docs/'+name)
     names.append('docs/images/configuracao-celular.png')
     for source in (ROOT/'docs').glob('*ALPHA*.json'):

@@ -1,0 +1,53 @@
+{
+  "url": "http://127.0.0.1:8808",
+  "http": 200,
+  "layouts": [
+    {
+      "language": "pt",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "language": "pt",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "language": "pt",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "language": "pt",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "language": "en",
+      "width": 320,
+      "overflow": false
+    },
+    {
+      "language": "en",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "language": "en",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "language": "en",
+      "width": 1440,
+      "overflow": false
+    }
+  ],
+  "translation": "complete",
+  "languagePersistence": true,
+  "clipboard": true,
+  "faq": true,
+  "images": true,
+  "reducedMotion": true,
+  "javascriptErrors": []
+}

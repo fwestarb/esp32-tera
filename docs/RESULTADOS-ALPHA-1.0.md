@@ -1,6 +1,6 @@
 # Resultados — ESP32 Tera Alpha 1.0
 
-Data: **11/10/2026**. Versão: `1.0.0-alpha.1`. Desenvolvimento e pacote locais; nada publicado e nenhum site criado.
+Data: **11/10/2026**. Versão: `1.0.0-alpha.1`. Testes do firmware e aplicativo realizados localmente antes da publicação. Para a publicação do site e pacote, consulte [PUBLICACAO.md](PUBLICACAO.md).
 
 ## Implementado e verificado
 

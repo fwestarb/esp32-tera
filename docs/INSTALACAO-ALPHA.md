@@ -1,5 +1,7 @@
 # ESP32 Tera — Alpha 1.0 / Installation
 
+[Site / Website](https://fwestarb.github.io/esp32-tera/) · [Download e SHA-256 / Release files](https://github.com/fwestarb/esp32-tera/releases/tag/v1.0.0-alpha.1)
+
 ## Português
 
 Compatível com **TTGO T-Display original (ESP32, 4 MB)**. Não use este firmware em T-Display S3 ou placas diferentes. Esta alpha não inclui teclado nem alto-falante físico.
@@ -13,6 +15,10 @@ Compatível com **TTGO T-Display original (ESP32, 4 MB)**. Não use este firmwar
 5. Configure Wi-Fi 2,4 GHz e sua chave pessoal Groq. O GPT-OSS 120B é o padrão; 20B é uma alternativa. Senha/chave vazias mantêm os valores da mesma rede/provedor. A opção **Trocar somente o modelo** preserva todas as credenciais.
 
 O pacote usa scripts Python; não é um executável autônomo. Os modelos de voz são instalados separadamente e não estão no ZIP. Depois de baixar, a síntese de voz funciona offline no PC. A conversa e a transcrição continuam exigindo internet.
+
+### Conferir o download
+
+Baixe também `SHA256SUMS.txt` na página da versão. No PowerShell, execute `Get-FileHash .\esp32-tera-1.0.0-alpha.1.zip -Algorithm SHA256` e compare o resultado com o arquivo. Esta verificação é opcional; o gravador verifica os hashes dos binários antes de usar a placa.
 
 ### Criar a chave gratuita
 
@@ -54,3 +60,5 @@ For phone setup, hold GPIO0 for about two seconds while running, connect to the 
 Hold GPIO35 to speak and release to send, up to ten seconds. GPIO0 advances response pages. PC audio and allowlisted desktop actions require the Windows companion to remain active. Closing the window minimizes it; the explicit Quit button stops it. Supported Portuguese opening requests cover Calculator, Notepad, Explorer, browser, GitHub and YouTube. Ambiguous targets ask for clarification; arbitrary shell commands are never executed.
 
 API credentials remain in unencrypted NVS. Do not distribute flash dumps. Audio/text are sent to the respective cloud providers. Speech output is generated locally and uses a temporary WAV. Memory contains only one bounded previous exchange. Physical speaker and keyboard are not implemented. See the test report for verified behavior and remaining hardware limitations.
+
+To verify the download, compare `Get-FileHash .\esp32-tera-1.0.0-alpha.1.zip -Algorithm SHA256` with `SHA256SUMS.txt` from the release. The firmware installer also verifies each binary against its manifest before flashing.
