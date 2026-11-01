@@ -22,6 +22,8 @@ bool applyConfiguration(JsonObjectConst doc,bool keepBlank,String& error);
 Portal portal(settings,[](JsonObjectConst doc,String& error){return applyConfiguration(doc,true,error);});
 uint32_t reconnectAt=0;
 String pcSession,pcPending,historyUser,historyAnswer;
+String pcQueued;
+uint32_t pcProbe=0,pcProbeDeadline=0;
 uint32_t pcLastSeen=0,pcActionId=0,pcDeadline=0;
 bool pcActions=true,pcSpeech=true,portalAttempted=false,menuLong=false;
 uint32_t menuStarted=0;
@@ -98,6 +100,10 @@ String actionLabel(const String& target){
  if(target=="calculator")return "a calculadora";if(target=="notepad")return "o Bloco de notas";if(target=="explorer")return "o explorador de arquivos";if(target=="github")return "o GitHub";if(target=="youtube")return "o YouTube";return "o navegador";
 }
 void chat(const String& prompt);
+void sendPCAction(const String& action){
+ pcPending=action;pcDeadline=millis()+5000;pcActionId++;answer="";notice="Solicitando abertura no PC...";render();emit("busy",notice);
+ StaticJsonDocument<256> doc;doc["event"]="pc_action";doc["session"]=pcSession;doc["id"]=pcActionId;doc["target"]=action;serializeJson(doc,Serial);Serial.println();
+}
 String boundedUtf8(const String& text,unsigned limit){
  if(text.length()<=limit)return text;
  while(limit&&((uint8_t)text[limit]&0xc0)==0x80)limit--;
@@ -106,10 +112,15 @@ String boundedUtf8(const String& text,unsigned limit){
 void dispatchInput(const String& text){
  String action=classifyAction(text);if(!action.length()){chat(text);return;}
  if(action=="clarify"){answer="Qual aplicativo voce quer abrir? Posso abrir calculadora, Bloco de notas, explorador, navegador, GitHub ou YouTube. Use um aplicativo por pedido.";render();emit("reply",answer);return;}
- if(pcPending.length()){emit("error","Aguarde a acao atual no PC.");return;}
- if(!pcSession.length()||millis()-pcLastSeen>=10000||!pcActions){answer="";notice="Abra o aplicativo Tera no PC e ative os comandos.";render();emit("error",notice);return;}
- pcPending=action;pcDeadline=millis()+5000;pcActionId++;answer="";notice="Solicitando abertura no PC...";render();emit("busy",notice);
- StaticJsonDocument<256> doc;doc["event"]="pc_action";doc["session"]=pcSession;doc["id"]=pcActionId;doc["target"]=action;serializeJson(doc,Serial);Serial.println();
+ if(pcPending.length()||pcQueued.length()){emit("error","Aguarde a acao atual no PC.");return;}
+ if(!pcSession.length()||!pcActions){answer="";notice="Abra o aplicativo Tera no PC e ative os comandos.";render();emit("error",notice);return;}
+ if(millis()-pcLastSeen>=10000){
+  // A gravação/HTTPS bloquearam o loop. Exigir confirmação fresca, não alongar a sessão.
+  pcQueued=action;pcProbe=esp_random();pcProbeDeadline=millis()+2000;
+  notice="Verificando conexao com o PC...";render();emit("busy",notice);
+  StaticJsonDocument<192> doc;doc["event"]="pc_probe";doc["session"]=pcSession;doc["challenge"]=pcProbe;serializeJson(doc,Serial);Serial.println();return;
+ }
+ sendPCAction(action);
 }
 void chat(const String& prompt){
  feedWatchdog();
@@ -208,13 +219,19 @@ void calibrateNoise(){
 void command(const String& line){
  DynamicJsonDocument doc(4096);if(deserializeJson(doc,line)){emit("error","JSON invalido.");return;}
  String op=doc["op"]|"";if(op=="status"){status();return;}
+ if(op=="bridge_probe_result"){
+  if(!pcQueued.length()||doc["session"]!=pcSession||!doc["challenge"].is<uint32_t>()||doc["challenge"].as<uint32_t>()!=pcProbe||(int32_t)(millis()-pcProbeDeadline)>=0)return;
+  String action=pcQueued;pcQueued="";
+  if(!doc["actions"].is<bool>()||!doc["actions"].as<bool>()){voiceError("Ative os comandos no aplicativo Tera.");return;}
+  pcActions=true;pcLastSeen=millis();sendPCAction(action);return;
+ }
  if(op=="portal"){if(doc["enabled"]|true)showPortal();else{portal.stop();answer="";notice="Configuracao fechada. Segure GPIO35 para falar.";render();emit("network",notice);}return;}
  if(op=="portal_test"){if(!portal.active())showPortal();if(!portal.startSelfTest())emit("error","Teste do portal indisponivel.");return;}
  if(op=="clear_history"){historyUser="";historyAnswer="";answer="";notice="Conversa limpa.";render();emit("network",notice);return;}
  if(op=="bridge_hello"||op=="bridge_ping"){
   String session=doc["session"]|"";bool valid=session.length()==32;for(unsigned i=0;i<session.length();i++)valid=valid&&isxdigit((unsigned char)session[i]);
   if(!valid||(op=="bridge_ping"&&session!=pcSession)){emit("error","Sessao do PC invalida.");return;}
-  if(op=="bridge_hello"&&session!=pcSession){pcSession=session;pcPending="";}
+  if(op=="bridge_hello"&&session!=pcSession){pcSession=session;pcPending="";pcQueued="";}
   pcLastSeen=millis();if(doc["actions"].is<bool>())pcActions=doc["actions"].as<bool>();if(doc["speech"].is<bool>())pcSpeech=doc["speech"].as<bool>();
   StaticJsonDocument<192> ack;ack["event"]=op=="bridge_hello"?"bridge_ready":"bridge_pong";ack["session"]=pcSession;ack["bootId"]=bootId;serializeJson(ack,Serial);Serial.println();return;
  }
@@ -316,6 +333,7 @@ void loop(){
  String portalReport=portal.takeTestResult();if(portalReport.length())Serial.println(portalReport);
  if(reconnectAt&&(int32_t)(millis()-reconnectAt)>=0){reconnectAt=0;portal.stop();WiFi.disconnect(false,false);connectWifi();render();}
  if(pcPending.length()&&(int32_t)(millis()-pcDeadline)>=0){pcPending="";voiceError("O aplicativo do PC nao respondeu. Abra Tera no computador.");}
+ if(pcQueued.length()&&(int32_t)(millis()-pcProbeDeadline)>=0){pcQueued="";voiceError("O aplicativo do PC nao respondeu. Abra Tera no computador.");}
  static bool connected=false;bool now=WiFi.status()==WL_CONNECTED;if(now!=connected){connected=now;if(now&&!answer.length()&&!portal.active())notice="WiFi conectado. Segure GPIO35 para falar (Groq).";render();status();}delay(5);
  if(!now&&!portal.active()&&settings.wifiSsid.length()&&!wifiReported&&millis()-wifiStarted>=20000){wifiReported=true;notice=wifiDiagnosis();render();status();}
  if(!now&&!portalAttempted&&millis()-wifiStarted>=30000){portalAttempted=true;showPortal();}

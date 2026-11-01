@@ -38,6 +38,8 @@ Chaves ficam na NVS sem criptografia; não distribua dumps da flash. Áudio é e
 
 ## Desenvolvimento
 
+Correções da revisão Vibe Check: a opção de rede aberta normaliza a senha para vazia no firmware e desabilita/limpa o campo no portal. Após gravação/transcrição demorada, um comando PC aguarda confirmação fresca da mesma sessão, com desafio e prazo de dois segundos; ausência, sessão trocada ou confirmação vencida não executam o comando. Use firmware e companion atualizados juntos. Companions anteriores não respondem ao novo desafio e o comando expira com erro, sem execução automática. A validação física de voz/USB ainda precisa ser repetida após essas alterações.
+
 ```text
 pio run -e ttgo_t_display
 python tools/test_pc_bridge.py

@@ -59,6 +59,7 @@ bool Settings::parse(JsonObjectConst doc, const Settings& current, bool keepBlan
     error="Configuracao incompleta.";return false;
   }
   next.wifiSsid=doc["ssid"].as<String>();next.wifiPassword=doc["password"].as<String>();next.apiKey=doc["key"].as<String>();
+  if(doc["openNetwork"]|false)next.wifiPassword="";
   next.provider=doc["provider"] | (keepBlank?current.provider.c_str():"openrouter");
   next.model=doc["model"] | ((keepBlank&&next.provider==current.provider)?current.model:defaultModel(next.provider));
   if(doc.containsKey("model")&&!doc["model"].is<String>()){error="Modelo invalido.";return false;}

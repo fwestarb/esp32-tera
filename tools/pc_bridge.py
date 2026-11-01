@@ -147,6 +147,10 @@ class PCBridge:
                 if event.get('message')=='Sessao do PC invalida.':
                     self.ready=False;self.session=uuid.uuid4().hex;self.seen.clear();self._hello()
             if kind=='reply' and self.ready:self.speech.say(event.get('message',''))
+        elif kind=='pc_probe':
+            challenge=event.get('challenge')
+            if self.ready and event.get('session')==self.session and type(challenge) is int and 0<=challenge<=0xffffffff:
+                self.send({'op':'bridge_probe_result','session':self.session,'challenge':challenge,'actions':self.actions})
         elif kind=='pc_action':
             target=event.get('target');action_id=event.get('id')
             if not self.ready or not self.actions or event.get('session')!=self.session or type(action_id) is not int or not 1<=action_id<=0xffffffff or target not in TARGETS:return
