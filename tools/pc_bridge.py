@@ -123,7 +123,7 @@ class PCBridge:
         kind=event.get('event')
         if kind=='status':
             self.last_status=event.copy()
-            if event.get('project')!='esp32-tera' or event.get('version') not in ('0.5.0','0.5.1','1.0.0-alpha.1'):
+            if event.get('project')!='esp32-tera' or event.get('version') not in ('0.5.0','0.5.1','1.0.0-alpha.1','1.0.0-alpha.2'):
                 self.callback({'event':'error','message':'Instale o firmware Tera Alpha 1.0 para usar o assistente do PC.'});return
             boot=event.get('bootId')
             if boot is not None:

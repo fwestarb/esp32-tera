@@ -1,7 +1,7 @@
 export const repo = 'https://github.com/fwestarb/esp32-tera';
-export const release = `${repo}/releases/tag/v1.0.0-alpha.1`;
-export const zipName = 'esp32-tera-1.0.0-alpha.1.zip';
-export const zipHash = 'fd383665bb255cd4eee7707bd34ca48568b9285a645a953c8445fdf0c4e4c2d6';
+export const release = `${repo}/releases/tag/v1.0.0-alpha.2`;
+export const zipName = 'esp32-tera-1.0.0-alpha.2.zip';
+export const zipHash = '511bc90fec216e54de3ffaaea2f110a524e7223deef1e153b9b76ee646d8d0e6';
 export const content = {
   pt: {
     skip:'Ir ao conteúdo', nav:['Recursos','Instalação','Uso','Documentação'], effects:'Efeitos', on:'ligados', off:'desligados',
