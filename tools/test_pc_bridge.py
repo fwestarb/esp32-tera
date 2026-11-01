@@ -31,6 +31,20 @@ class Tests(unittest.TestCase):
   self.bridge.handle(event)
  def test_action_and_ack(self):
   self.action();self.assertEqual(self.executor.calls,['calculator']);self.assertIn(b'pc_result',self.bridge.connection.writes[0])
+ def test_probe_responds_while_busy_without_executing(self):
+  self.bridge.busy=True
+  self.bridge.handle({'event':'pc_probe','session':self.bridge.session,'challenge':123})
+  result=json.loads(self.bridge.connection.writes[-1]);self.assertEqual(result['op'],'bridge_probe_result');self.assertEqual(result['challenge'],123)
+  self.assertEqual(result['session'],self.bridge.session);self.assertTrue(result['actions']);self.assertFalse(self.executor.calls)
+ def test_probe_rejects_old_session_invalid_nonce_and_unpaired(self):
+  for challenge in [True,-1,2**32,'123']:
+   self.bridge.handle({'event':'pc_probe','session':self.bridge.session,'challenge':challenge})
+  self.bridge.handle({'event':'pc_probe','session':'0'*32,'challenge':123})
+  self.bridge.ready=False;self.bridge.handle({'event':'pc_probe','session':self.bridge.session,'challenge':123})
+  self.assertFalse(self.bridge.connection.writes)
+ def test_probe_reports_disabled_actions(self):
+  self.bridge.actions=False;self.bridge.handle({'event':'pc_probe','session':self.bridge.session,'challenge':0})
+  self.assertFalse(json.loads(self.bridge.connection.writes[-1])['actions']);self.assertFalse(self.executor.calls)
  def test_duplicates(self):self.action();self.action();self.assertEqual(len(self.executor.calls),1)
  def test_forged_session(self):self.action(session='0'*32);self.assertFalse(self.executor.calls)
  def test_bool_id(self):self.action(id=True);self.assertFalse(self.executor.calls)
