@@ -2,13 +2,13 @@
 
 ## Publicação de 01/11/2026
 
-Versão atual: **1.0.0-alpha.2**, com firmware e companion corrigidos. Veja [notas e limites da nova versão](RELEASE-1.0.0-alpha.2.md). Os relatórios antigos abaixo registram verificações anteriores e não são novos testes de hardware.
+Pacote atual: **1.0.0-alpha.3**, com diagnóstico local no companion e firmware alpha.2 preservado. Veja [notas e limites da nova versão](RELEASE-1.0.0-alpha.3.md). Os relatórios antigos abaixo registram verificações anteriores e não são novos testes de hardware.
 
 ## Português
 
 - [Site com instalação e documentação](https://fwestarb.github.io/esp32-tera/)
 - [Código do esp32-tera](https://github.com/fwestarb/esp32-tera)
-- [Alpha atual, ZIP e SHA-256](https://github.com/fwestarb/esp32-tera/releases/tag/v1.0.0-alpha.2)
+- [Alpha atual, ZIP e SHA-256](https://github.com/fwestarb/esp32-tera/releases/tag/v1.0.0-alpha.3)
 
 O site atual usa React + Vite com seis componentes React Bits. Execute `npm ci` e `npm run build` em `website`; o build atualiza `docs/index.html` e `docs/ui/assets`. Consulte [desenvolvimento do site](../website/README.md). GitHub Pages publica a pasta `docs` da branch `main`. O arquivo `.nojekyll` mantém os arquivos estáticos. O fundo tem base sólida e efeitos discretos opcionais; as animações são visuais, não medições da IA. A foto mostra o protótipo real em um teste anterior.
 

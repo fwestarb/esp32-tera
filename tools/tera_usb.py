@@ -8,9 +8,10 @@ import os
 from pathlib import Path
 import threading
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, filedialog, messagebox
 from urllib.request import Request, urlopen
 from pc_bridge import PCBridge
+from support_report import export_report
 
 IPC_PORT = 39135
 VOICES={'Dora · feminina local (Kokoro)':'kokoro-dora','Faber · neural local (Piper)':'piper-faber','Daniel · Windows':'windows-daniel','Maria · Windows':'windows-maria'}
@@ -95,6 +96,15 @@ def main():
         except OSError:append('Não foi possível salvar a escolha de voz.')
     voice.bind('<<ComboboxSelected>>',change_voice)
     ttk.Button(voice_row,text='Ouvir exemplo',command=lambda:bridge.speech.say('Olá, eu sou a Tera. Esta é minha voz em português.')).pack(side='left')
+    def save_diagnostics():
+        destination=filedialog.asksaveasfilename(parent=root,title='Salvar diagnóstico para suporte',defaultextension='.json',initialfile='tera-diagnostico.json',filetypes=[('JSON','*.json')])
+        if not destination:return
+        try:
+            export_report(bridge,destination)
+            messagebox.showinfo('Diagnóstico salvo','Arquivo local salvo sem mensagens, chaves ou identificadores de sessão.',parent=root)
+        except OSError:
+            messagebox.showerror('Não foi possível salvar','Escolha outro local e tente novamente.',parent=root)
+    ttk.Button(voice_row,text='Salvar diagnóstico',command=save_diagnostics).pack(side='left',padx=8)
     ttk.Label(frame,text='Comandos: “pode abrir a calculadora?”, “abra o Bloco de notas”, “abrir GitHub”,\n“abrir YouTube”, “abrir navegador” ou “abrir explorador de arquivos”.').pack(anchor='w',pady=5)
     config = ttk.LabelFrame(frame,text='Configuração da placa',padding=10); config.pack(fill='x',pady=5)
     provider = ttk.Combobox(config,values=['groq','openrouter'],state='readonly'); provider.set('groq')

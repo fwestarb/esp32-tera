@@ -1,0 +1,1 @@
+038dbe61b7fe991c9d5efa26aa1ece6604240aef218328945e94d5202cf2fc14  esp32-tera-1.0.0-alpha.3.zip

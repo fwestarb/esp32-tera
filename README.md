@@ -2,7 +2,13 @@
 
 Assistente de IA para a **TTGO T-Display original**, com entrada por microfone, respostas na tela e integração opcional com Windows. Identidade minimalista em cinza e verde, com uma árvore que ganha folhas quando chega uma resposta.
 
-[Site e passo a passo](https://fwestarb.github.io/esp32-tera/) · [Baixar Alpha 1.0](https://github.com/fwestarb/esp32-tera/releases/tag/v1.0.0-alpha.2) · [Instalação / Installation](docs/INSTALACAO-ALPHA.md)
+[Site e passo a passo](https://fwestarb.github.io/esp32-tera/) · [Baixar Alpha 1.0](https://github.com/fwestarb/esp32-tera/releases/tag/v1.0.0-alpha.3) · [Instalação / Installation](docs/INSTALACAO-ALPHA.md)
+
+## Atualização do companion — alpha.3
+
+O botão **Salvar diagnóstico** grava um JSON local para suporte sem mensagens, chaves, SSID ou sessão. Leia as [notas da alpha.3](docs/RELEASE-1.0.0-alpha.3.md). O firmware incluído continua alpha.2; não é necessário regravar a placa para esta atualização do companion.
+
+The alpha.3 companion adds a local support JSON export without messages, keys, SSID or session IDs. Bundled firmware remains alpha.2; no reflashing is required for this companion update.
 
 ## Recursos da Alpha 1.0
 
@@ -43,6 +49,7 @@ Correções da revisão Vibe Check: a opção de rede aberta normaliza a senha p
 ```text
 pio run -e ttgo_t_display
 python tools/test_pc_bridge.py
+python tools/test_support_report.py
 python tools/test_device.py
 python tools/test_alpha_device.py
 python tools/test_pc_recovery.py
@@ -63,7 +70,7 @@ Setup is available over USB and a temporary password-protected Wi-Fi network for
 
 The release ZIP includes firmware with integrity hashes, source and Windows setup scripts. It requires Python 3.12 and downloads voice models separately. API keys and existing configuration are not included. Read the [installation guide](docs/INSTALACAO-ALPHA.md) and [test results](docs/RESULTADOS-ALPHA-1.0.md). Physical keyboard/speaker are not implemented. Credentials remain in unencrypted NVS; never publish device flash dumps. Cloud providers receive audio/text, and HTTPS requests are blocking with timeouts. USB reconnection, session recovery and a main-task watchdog improve fault recovery.
 
-[Website and setup walkthrough](https://fwestarb.github.io/esp32-tera/) · [Download Alpha 1.0](https://github.com/fwestarb/esp32-tera/releases/tag/v1.0.0-alpha.2).
+[Website and setup walkthrough](https://fwestarb.github.io/esp32-tera/) · [Download Alpha 1.0](https://github.com/fwestarb/esp32-tera/releases/tag/v1.0.0-alpha.3).
 
 Website: React + Vite built to static GitHub Pages files, with Portuguese/English selection, six React Bits components, responsive layout, reduced-motion support and a verified ZIP download. Build instructions are in [website/README.md](website/README.md). See [publication and checks](docs/PUBLICACAO.md).
 
